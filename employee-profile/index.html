@@ -59,6 +59,7 @@ body::before{content:'';position:fixed;inset:0;background:
   border-radius:6px;font-size:14px;color:var(--text);font-family:'Nunito Sans',sans-serif;transition:.2s;}
 .fc:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(179,27,27,.12);}
 .fc::placeholder{color:#2a4a6a;}
+.fc:disabled{opacity:0.6;cursor:not-allowed;}
 .eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);
   background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;transition:.2s;}
 .eye-btn:hover{color:var(--text);}
@@ -69,15 +70,24 @@ body::before{content:'';position:fixed;inset:0;background:
   justify-content:center;gap:8px;margin-top:8px;}
 .btn-login:hover{background:#d32f2f;box-shadow:0 4px 20px rgba(179,27,27,.4);}
 .btn-login:active{transform:scale(.99);}
+.btn-login:disabled{opacity:.5;pointer-events:none;cursor:not-allowed;}
 .btn-login.loading{opacity:.7;pointer-events:none;}
 
-.alert{padding:11px 14px;border-radius:5px;font-size:13px;margin-bottom:16px;display:none;}
+/* Alerts */
+.alert{padding:12px 14px;border-radius:6px;font-size:13px;margin-bottom:16px;display:none;align-items:center;gap:10px;}
+.alert i{font-size:16px;flex-shrink:0;}
 .al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+.al-w{background:rgba(251,188,4,.15);border:1px solid #fbc004;color:#fff9c4;}
 .al-s{background:rgba(67,160,71,.15);border:1px solid #43a047;color:#81c784;}
+.al-i{background:rgba(25,118,210,.15);border:1px solid #1976d2;color:#64b5f6;}
 
 .divider{text-align:center;font-size:11px;color:var(--muted);margin:20px 0;}
-.hint{font-size:11px;color:var(--muted);text-align:center;margin-top:20px;}
+.hint{font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.6;}
 .hint span{color:var(--primary);}
+
+.server-status{font-size:11px;text-align:center;margin-top:12px;padding:8px;background:rgba(0,0,0,.3);border-radius:4px;display:none;}
+.server-status.online{color:#81c784;}
+.server-status.offline{color:#ef9a9a;}
 
 @media(max-width:680px){.wrap{grid-template-columns:1fr;}.panel{display:none;}.form-side{padding:40px 25px;}}
 </style>
@@ -114,88 +124,359 @@ body::before{content:'';position:fixed;inset:0;background:
     <h3>Welcome Back</h3>
     <p>Sign in to access the HR dashboard</p>
 
-    <div class="alert al-e" id="alertBox"></div>
-
-    <div class="fg">
-      <label class="lbl">Username</label>
-      <div class="inp-wrap">
-        <i class="fas fa-user"></i>
-        <input type="text" class="fc" id="username" placeholder="Enter your username"
-          onkeydown="if(event.key==='Enter')login()">
-      </div>
-    </div>
-    <div class="fg">
-      <label class="lbl">Password</label>
-      <div class="inp-wrap">
-        <i class="fas fa-lock"></i>
-        <input type="password" class="fc" id="password" placeholder="Enter your password"
-          onkeydown="if(event.key==='Enter')login()">
-        <button class="eye-btn" onclick="togglePwd()" id="eyeBtn" type="button">
-          <i class="fas fa-eye" id="eyeIcon"></i>
-        </button>
-      </div>
+    <!-- Error Alert -->
+    <div class="alert al-e" id="alertError">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="alertErrorText"></span>
     </div>
 
-    <button class="btn-login" id="loginBtn" onclick="login()">
-      <i class="fas fa-sign-in-alt"></i> Sign In
-    </button>
+    <!-- Warning Alert -->
+    <div class="alert al-w" id="alertWarning">
+      <i class="fas fa-info-circle"></i>
+      <span id="alertWarningText"></span>
+    </div>
 
-    <div class="hint">Default credentials: <span>admin / admin123</span> &nbsp;(run setup.php first)</div>
+    <!-- Success Alert -->
+    <div class="alert al-s" id="alertSuccess">
+      <i class="fas fa-check-circle"></i>
+      <span id="alertSuccessText"></span>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="alert al-i" id="alertInfo">
+      <i class="fas fa-information-circle"></i>
+      <span id="alertInfoText"></span>
+    </div>
+
+    <!-- Server Status -->
+    <div class="server-status" id="serverStatus">
+      <i class="fas fa-circle"></i> <span id="serverStatusText">Checking server...</span>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="fg">
+        <label class="lbl" for="username">Username</label>
+        <div class="inp-wrap">
+          <i class="fas fa-user"></i>
+          <input 
+            type="text" 
+            class="fc" 
+            id="username" 
+            name="username"
+            placeholder="Enter your username"
+            required
+            autocomplete="username"
+            disabled>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="lbl" for="password">Password</label>
+        <div class="inp-wrap">
+          <i class="fas fa-lock"></i>
+          <input 
+            type="password" 
+            class="fc" 
+            id="password" 
+            name="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+            disabled>
+          <button 
+            class="eye-btn" 
+            type="button"
+            id="eyeBtn" 
+            onclick="togglePassword()"
+            title="Show/hide password">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </button>
+    </form>
+
+    <div class="hint">
+      Default credentials: <span>admin / admin123</span>
+      <br>Make sure Laravel API is running on port 8000
+    </div>
   </div>
 
 </div>
 
 <script>
-// If already logged in, go straight to dashboard
-if (Auth.isLoggedIn()) window.location.href = 'admin.html';
+// ────────────────────────────────────────────────────────
+//  LOGIN PAGE WITH COMPREHENSIVE ERROR HANDLING
+// ────────────────────────────────────────────────────────
 
-async function login() {
-  const u = document.getElementById('username').value.trim();
-  const p = document.getElementById('password').value.trim();
-  if (!u || !p) { showAlert('Please enter username and password.'); return; }
+// State management
+let loginAttempts = 0;
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
+let isServerOnline = false;
 
-  const btn = document.getElementById('loginBtn');
-  btn.classList.add('loading');
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+// ── INITIALIZATION ──────────────────────────────────────
 
+document.addEventListener('DOMContentLoaded', function() {
+  Logger.log('Login page initialized');
+  
+  // Redirect if already logged in
+  if (Auth.isLoggedIn()) {
+    Logger.log('User already logged in, redirecting to dashboard');
+    window.location.href = 'admin.html';
+    return;
+  }
+  
+  // Check server status on page load
+  checkServerStatus();
+  
+  // Set focus to username
+  setTimeout(() => document.getElementById('username').focus(), 100);
+});
+
+// ── SERVER STATUS CHECK ─────────────────────────────────
+
+async function checkServerStatus() {
+  const statusEl = document.getElementById('serverStatus');
+  const statusText = document.getElementById('serverStatusText');
+  
   try {
-    const res  = await api.post('login', { username: u, password: p });
-    const data = await res.json();
-
-    if (data.success) {
-      // Store token and user info — config.js Auth helper
-      Auth.setToken(data.token);
-      Auth.setUser(data.user);
-      btn.innerHTML = '<i class="fas fa-check"></i> Success!';
-      setTimeout(() => window.location.href = 'admin.html', 500);
+    const response = await fetch(`${API_BASE}/health`, { 
+      method: 'GET',
+      timeout: 5000 
+    });
+    
+    isServerOnline = response.ok;
+    
+    if (isServerOnline) {
+      enableForm();
+      statusEl.classList.add('online');
+      statusEl.classList.remove('offline');
+      statusText.textContent = 'Server online';
+      Logger.log('Server is online');
     } else {
-      showAlert(data.error || 'Login failed.');
-      btn.classList.remove('loading');
-      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+      disableForm('Server is not responding properly');
+      statusEl.classList.add('offline');
+      statusEl.classList.remove('online');
+      statusText.textContent = 'Server error';
+      showAlert('error', 'Server is not responding. Try again in a moment.');
+      Logger.error('Server error response');
     }
-  } catch {
-    showAlert('Cannot connect to server. Make sure XAMPP is running and Laravel API is started (php artisan serve).');
-    btn.classList.remove('loading');
-    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+  } catch (err) {
+    disableForm('Cannot reach the server');
+    statusEl.classList.add('offline');
+    statusEl.classList.remove('online');
+    statusText.textContent = 'Server offline';
+    showAlert('error', 'Cannot connect to server. Check your connection and try again.');
+    Logger.error('Server status check failed', err);
   }
 }
 
-function showAlert(msg) {
-  const b = document.getElementById('alertBox');
-  b.textContent = '⚠ ' + msg;
-  b.style.display = 'block';
-  b.className = 'alert al-e';
+// ── FORM CONTROL ────────────────────────────────────────
+
+function enableForm() {
+  document.getElementById('username').disabled = false;
+  document.getElementById('password').disabled = false;
+  document.getElementById('loginBtn').disabled = false;
 }
 
-function togglePwd() {
-  const inp  = document.getElementById('password');
+function disableForm(reason = 'Server unavailable') {
+  document.getElementById('username').disabled = true;
+  document.getElementById('password').disabled = true;
+  document.getElementById('loginBtn').disabled = true;
+}
+
+// ── LOGIN HANDLER ──────────────────────────────────────
+
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  // Get form values
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  
+  // Validate input
+  if (!username) {
+    showAlert('error', 'Please enter your username');
+    document.getElementById('username').focus();
+    return;
+  }
+  
+  if (!password) {
+    showAlert('error', 'Please enter your password');
+    document.getElementById('password').focus();
+    return;
+  }
+  
+  // Check login attempts
+  if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+    showAlert('error', `Too many failed attempts. Please try again in 15 minutes.`);
+    disableForm('Account locked due to too many failed attempts');
+    return;
+  }
+  
+  // Set loading state
+  const btn = document.getElementById('loginBtn');
+  const originalContent = btn.innerHTML;
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+  
+  try {
+    // Make login request
+    Logger.log('Attempting login for user:', username);
+    const response = await api.post('login', { username, password });
+    
+    if (!response) {
+      throw new Error('No response from server');
+    }
+    
+    const data = await parseApiResponse(response);
+    
+    if (!data) {
+      throw new Error('Invalid response format');
+    }
+    
+    if (data.success) {
+      // Reset attempts on successful login
+      loginAttempts = 0;
+      
+      // Store token and user info
+      Auth.setToken(data.token, data.expiresIn);
+      Auth.setUser(data.user);
+      
+      Logger.log('Login successful for user:', data.user);
+      showAlert('success', 'Login successful! Redirecting...');
+      
+      btn.innerHTML = '<i class="fas fa-check"></i> Success!';
+      btn.classList.remove('loading');
+      
+      // Redirect after brief delay
+      setTimeout(() => window.location.href = 'admin.html', 800);
+      
+    } else {
+      // Handle login failure
+      loginAttempts++;
+      
+      let errorMsg = data.error || 'Login failed';
+      
+      // Provide specific error messages
+      if (data.error === 'invalid_credentials' || data.error === 'Invalid credentials') {
+        errorMsg = 'Invalid username or password';
+      } else if (data.error === 'user_not_found') {
+        errorMsg = 'User account not found';
+      } else if (data.error === 'user_inactive') {
+        errorMsg = 'Your account is inactive. Contact administrator.';
+      }
+      
+      const attemptsLeft = MAX_LOGIN_ATTEMPTS - loginAttempts;
+      if (attemptsLeft <= 2) {
+        errorMsg += ` (${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining)`;
+      }
+      
+      showAlert('error', errorMsg);
+      Logger.warn('Login failed:', data.error);
+      
+      // Clear password for security
+      document.getElementById('password').value = '';
+      document.getElementById('username').focus();
+    }
+    
+  } catch (err) {
+    Logger.error('Login error:', err.message);
+    
+    let errorMsg = 'Login failed: ';
+    
+    if (err.message.includes('Network error')) {
+      errorMsg += 'Cannot reach server. Check your internet connection.';
+    } else if (err.message.includes('timeout')) {
+      errorMsg += 'Request timed out. Server may be slow. Try again.';
+    } else if (err.message.includes('unreachable')) {
+      errorMsg += 'Server is unreachable. Make sure the API is running.';
+    } else if (err.message.includes('Failed to fetch')) {
+      errorMsg += 'Cannot connect to server. Check the API URL in config.js';
+    } else {
+      errorMsg += err.message;
+    }
+    
+    showAlert('error', errorMsg);
+    showAlert('info', 'Check browser console (F12) for technical details');
+    
+  } finally {
+    // Reset button state
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.innerHTML = originalContent;
+  }
+}
+
+// Prevent form submission on Enter in password field
+// (Already handled by form submit event)
+
+// ── PASSWORD VISIBILITY TOGGLE ──────────────────────────
+
+function togglePassword() {
+  const inp = document.getElementById('password');
   const icon = document.getElementById('eyeIcon');
-  const show = inp.type === 'password';
-  inp.type   = show ? 'text' : 'password';
-  icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+  const isPassword = inp.type === 'password';
+  
+  inp.type = isPassword ? 'text' : 'password';
+  icon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+  
+  Logger.log('Password visibility toggled');
 }
 
-document.getElementById('username').focus();
+// ── ALERT SYSTEM ────────────────────────────────────────
+
+function showAlert(type, message) {
+  // Hide all alerts first
+  hideAllAlerts();
+  
+  const alertMap = {
+    error: { id: 'alertError', textId: 'alertErrorText' },
+    warning: { id: 'alertWarning', textId: 'alertWarningText' },
+    success: { id: 'alertSuccess', textId: 'alertSuccessText' },
+    info: { id: 'alertInfo', textId: 'alertInfoText' }
+  };
+  
+  const alert = alertMap[type];
+  if (!alert) return;
+  
+  const alertEl = document.getElementById(alert.id);
+  const textEl = document.getElementById(alert.textId);
+  
+  textEl.textContent = message;
+  alertEl.style.display = 'flex';
+  
+  Logger.log(`Alert [${type}]: ${message}`);
+  
+  // Auto-hide success/info after 5 seconds
+  if (type === 'success' || type === 'info') {
+    setTimeout(hideAllAlerts, 5000);
+  }
+}
+
+function hideAllAlerts() {
+  ['alertError', 'alertWarning', 'alertSuccess', 'alertInfo'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+}
+
+// ────────────────────────────────────────────────────────
+//  DEBUG: Check configuration
+// ────────────────────────────────────────────────────────
+
+if (AppConfig.enableLogging) {
+  console.group('%cLogin Page Debug', 'color: #d32f2f; font-weight: bold;');
+  console.log('API Base:', API_BASE);
+  console.log('Environment:', AppConfig.environment);
+  console.log('Server Check URL:', `${API_BASE}/health`);
+  console.groupEnd();
+}
 </script>
 </body>
 </html>
