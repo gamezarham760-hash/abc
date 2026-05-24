@@ -1,0 +1,157 @@
+# ============================================================
+#  .gitignore — Rescue 1122 HRM Project
+#  Specifies intentionally untracked files to ignore in Git
+# ============================================================
+
+# ── LARAVEL BACKEND ──────────────────────────────────────
+
+# Environment variables (sensitive data)
+rescue1122-api/.env
+rescue1122-api/.env.local
+rescue1122-api/.env.*.local
+
+# Composer dependencies
+rescue1122-api/vendor/
+rescue1122-api/composer.lock
+
+# Laravel specific
+rescue1122-api/storage/logs/
+rescue1122-api/storage/app/
+rescue1122-api/bootstrap/cache/
+rescue1122-api/node_modules/
+rescue1122-api/npm-debug.log
+rescue1122-api/yarn-error.log
+
+# IDE/Editor specific files
+rescue1122-api/.vscode/
+rescue1122-api/.idea/
+rescue1122-api/*.sublime-project
+rescue1122-api/*.sublime-workspace
+rescue1122-api/.DS_Store
+rescue1122-api/Thumbs.db
+
+# Testing
+rescue1122-api/.phpunit.result.cache
+rescue1122-api/coverage/
+
+# Temporary files
+rescue1122-api/*.tmp
+rescue1122-api/*.bak
+rescue1122-api/*.swp
+rescue1122-api/*~
+
+# ── FRONTEND ─────────────────────────────────────────────
+
+# Node modules (if using build tools)
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log
+yarn-error.log
+
+# IDE/Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# ── UPLOADED FILES & MEDIA ──────────────────────────────
+
+# User uploaded photos/documents
+public/storage/uploads/
+storage/uploads/
+!storage/uploads/.gitkeep
+
+# Cache files
+*.cache
+.cache/
+
+# ── SYSTEM FILES ────────────────────────────────────────
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+.directory
+
+# ── XAMPP SPECIFIC ──────────────────────────────────────
+
+# XAMPP temp files
+xampp/
+webalizer/
+phpmyadmin/
+.htpasswd
+
+# ── MISC ─────────────────────────────────────────────────
+
+# Logs
+logs/
+*.log
+
+# Build artifacts
+dist/
+build/
+
+# Database backups
+*.sql
+*.sql.gz
+!migrations/
+
+# Credentials & Secrets
+.env
+.env.local
+.env.*.local
+secrets.json
+credentials.json
+config/database.local.php
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ── DEVELOPMENT ONLY ────────────────────────────────────
+
+# Development notes
+dev-notes.md
+TODO.md
+FIXME.md
+
+# Debugging
+debug.log
+.debug
+
+# ── EXCEPTION: Keep these important files ───────────────
+
+# Database migrations MUST be tracked
+!rescue1122-api/database/migrations/
+!rescue1122-api/database/seeders/
+
+# Configuration examples should be tracked
+!.env.example
+!rescue1122-api/.env.example
+
+# Gitkeep files for empty directories
+!**/.gitkeep
+
+# ============================================================
+#  END OF .gitignore
+# ============================================================
