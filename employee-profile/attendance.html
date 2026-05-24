@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Attendance Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+/* TOPBAR */
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
+.tl{display:flex;align-items:center;gap:12px;}
+.logo{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.topbar h1{font-size:16px;color:#fff;}
+.topbar small{font-size:10px;color:var(--muted);display:block;}
+.tr{display:flex;align-items:center;gap:10px;}
+.btn{padding:8px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-success{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-info{background:rgba(25,118,210,.2);color:#90caf9;border:1px solid rgba(25,118,210,.3);}
+.btn-warning{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.btn-danger{background:rgba(229,57,53,.15);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.btn:hover{opacity:.85;}
+.user-chip{background:var(--inp);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:8px;}
+.user-dot{width:8px;height:8px;border-radius:50%;background:var(--success);}
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px);}
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:18px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-sect{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 14px 6px;margin-top:14px;}
+.sb-sect:first-child{margin-top:0;}
+.nav-item{padding:9px 14px;display:flex;align-items:center;gap:9px;font-size:12px;cursor:pointer;border-left:3px solid transparent;transition:.12s;text-decoration:none;color:var(--text);}
+.nav-item:hover{background:rgba(179,27,27,.07);color:#fff;}
+.nav-item.active{background:rgba(179,27,27,.12);color:#fff;border-left-color:var(--primary);font-weight:700;}
+.nav-item i{width:16px;color:var(--muted);font-size:12px;}
+.nav-item.active i{color:var(--primary);}
+/* MAIN */
+.main{padding:22px 26px;}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.ph h2{font-size:20px;color:#fff;margin-bottom:3px;font-weight:800;}
+.ph p{font-size:12px;color:var(--muted);}
+/* TABS */
+.tabs{display:flex;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow-x:auto;margin-bottom:18px;}
+.tab{padding:10px 18px;font-size:12px;font-weight:600;cursor:pointer;transition:.12s;border-right:1px solid var(--border);white-space:nowrap;color:var(--muted);}
+.tab:hover{background:rgba(179,27,27,.07);color:#fff;}
+.tab.active{background:rgba(179,27,27,.14);color:#fff;}
+.tab:last-child{border-right:none;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+/* STATS */
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;transition:.2s;}
+.scard:hover{border-color:var(--primary);transform:translateY(-2px);}
+.scard-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:10px;}
+.si1{background:rgba(67,160,71,.15);color:#81c784;}
+.si2{background:rgba(229,57,53,.15);color:#ef9a9a;}
+.si3{background:rgba(255,167,38,.15);color:var(--warning);}
+.si4{background:rgba(25,118,210,.15);color:#90caf9;}
+.scard-num{font-size:28px;font-weight:800;color:#fff;line-height:1;}
+.scard-lbl{font-size:10px;color:var(--muted);margin-top:4px;}
+/* CARDS */
+.cc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;}
+.cc-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.cc-hd h4{font-size:13px;color:#fff;font-weight:700;}
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.fc{padding:8px 11px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text);font-family:'Nunito Sans',sans-serif;outline:none;transition:.15s;}
+.fc:focus{border-color:var(--primary);}
+select.fc option{background:#0a1624;}
+.finp{width:100%;padding:9px 12px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--text);font-family:'Nunito Sans',sans-serif;outline:none;transition:.15s;}
+.finp:focus{border-color:var(--primary);}
+.finp::placeholder{color:#2a4a6a;}
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:9px 13px;background:#051020;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap;}
+td{padding:9px 13px;border-bottom:1px solid #0d2035;color:var(--text);}
+tr:hover td{background:rgba(179,27,27,.03);}
+/* BADGE */
+.badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-present{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.b-absent{background:rgba(229,57,53,.2);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.b-late{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.b-half{background:rgba(25,118,210,.2);color:#90caf9;border:1px solid rgba(25,118,210,.3);}
+.b-leave{background:rgba(156,39,176,.2);color:#ce93d8;border:1px solid rgba(156,39,176,.3);}
+.b-holiday{background:rgba(0,150,136,.2);color:#4db6ac;border:1px solid rgba(0,150,136,.3);}
+/* FORM */
+.form-sec{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px;}
+.form-sec h4{font-size:13px;color:#fff;margin-bottom:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+/* ALERT */
+.alert{padding:10px 14px;border-radius:5px;font-size:12px;margin-bottom:14px;display:none;}
+.al-s{background:rgba(67,160,71,.15);border:1px solid var(--success);color:#81c784;}
+.al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+/* ATTENDANCE GRID (calendar style) */
+.att-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;}
+.att-day-hdr{font-size:10px;font-weight:700;color:var(--muted);text-align:center;padding:6px 0;text-transform:uppercase;}
+.att-day{background:var(--inp);border:1px solid var(--border);border-radius:5px;padding:8px 4px;text-align:center;font-size:11px;min-height:52px;position:relative;cursor:pointer;transition:.15s;}
+.att-day:hover{border-color:var(--primary);}
+.att-day .day-num{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;}
+.att-day .day-status{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+.att-day.present{background:rgba(67,160,71,.1);border-color:rgba(67,160,71,.3);}
+.att-day.absent{background:rgba(229,57,53,.1);border-color:rgba(229,57,53,.25);}
+.att-day.late{background:rgba(255,167,38,.1);border-color:rgba(255,167,38,.3);}
+.att-day.half{background:rgba(25,118,210,.1);border-color:rgba(25,118,210,.3);}
+.att-day.leave{background:rgba(156,39,176,.1);border-color:rgba(156,39,176,.3);}
+.att-day.holiday{background:rgba(0,150,136,.1);border-color:rgba(0,150,136,.3);}
+.att-day.empty{background:transparent;border-color:transparent;cursor:default;}
+.att-day.today{box-shadow:0 0 0 2px var(--primary);}
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999;}
+.mo.open{display:flex;}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:10px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.mhd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.mhd h3{font-size:14px;color:#fff;font-weight:700;}
+.mcl{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.mbody{padding:18px;}
+.mfoo{padding:13px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+/* FLATPICKR DARK */
+.flatpickr-calendar{background:#0c1e2e!important;border:1px solid #1e3a5f!important;}
+.flatpickr-day{color:#c0d4e8!important;}.flatpickr-day:hover{background:#1e3a5f!important;}
+.flatpickr-day.selected{background:#b31b1b!important;border-color:#b31b1b!important;color:#fff!important;}
+.flatpickr-months,.flatpickr-weekdays{background:#0a1624!important;}
+.flatpickr-current-month,.flatpickr-weekday{color:#c0d4e8!important;fill:#c0d4e8!important;}
+/* SUMMARY ROW */
+.summary-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.s-pill{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;}
+/* PAGINATION */
+.pag{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--border);margin-top:8px;}
+.pag-info{font-size:11px;color:var(--muted);}
+.pag-btns{display:flex;gap:4px;}
+.pb{width:28px;height:28px;border-radius:4px;border:1px solid var(--border);background:var(--inp);color:var(--text);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.pb:hover,.pb.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.pb:disabled{opacity:.3;cursor:not-allowed;}
+/* EMPTY */
+.empty{text-align:center;padding:40px;color:var(--muted);}
+.empty i{font-size:32px;margin-bottom:10px;display:block;}
+/* BULK MARK */
+.bulk-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:12px;background:var(--inp);border-radius:6px;border:1px solid var(--border);}
+.bulk-row label{font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px;cursor:pointer;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl">
+    <div class="logo"><i class="fas fa-shield-alt"></i></div>
+    <div><h1>Rescue 1122 &nbsp;<span style="font-weight:400;color:var(--muted);font-size:13px">HRM</span></h1><small id="dateTime"></small></div>
+  </div>
+  <div class="tr">
+    <div class="user-chip"><div class="user-dot"></div><span id="userName">Admin</span></div>
+    <a href="admin.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <a href="#" class="btn btn-back" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-sect">Main</div>
+    <a href="admin.html" class="nav-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-users"></i> Employees</a>
+    <div class="sb-sect">HR Operations</div>
+    <a href="add_employee_1122.html" class="nav-item"><i class="fas fa-user-plus"></i> Add Employee</a>
+    <a href="attendance.html" class="nav-item active"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="payroll.html" class="nav-item"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+    <a href="bulk_import.html" class="nav-item"><i class="fas fa-file-import"></i> Bulk Import</a>
+    <a href="transfer_history.html" class="nav-item"><i class="fas fa-exchange-alt"></i> Transfers & Postings</a>
+    <a href="leave_management.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Leave Management</a>
+    <a href="employee_list.html?status=On+Leave" class="nav-item"><i class="fas fa-plane-departure"></i> On Leave</a>
+    <a href="employee_list.html?status=Suspended" class="nav-item"><i class="fas fa-ban"></i> Suspended</a>
+    <div class="sb-sect">Administration</div>
+    <a href="field_manager.html" class="nav-item"><i class="fas fa-sliders-h"></i> Field Manager</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-file-export"></i> Export Data</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div id="alertBox" class="alert"></div>
+    <div class="ph">
+      <div><h2>Attendance Management</h2><p>Mark, track and report employee attendance records</p></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-success" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+        <button class="btn btn-primary" onclick="openMarkModal()"><i class="fas fa-plus"></i> Mark Attendance</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats4" id="statsRow">
+      <div class="scard"><div class="scard-icon si1"><i class="fas fa-user-check"></i></div><div class="scard-num" id="st-present">—</div><div class="scard-lbl">Present Today</div></div>
+      <div class="scard"><div class="scard-icon si2"><i class="fas fa-user-times"></i></div><div class="scard-num" id="st-absent">—</div><div class="scard-lbl">Absent Today</div></div>
+      <div class="scard"><div class="scard-icon si3"><i class="fas fa-clock"></i></div><div class="scard-num" id="st-late">—</div><div class="scard-lbl">Late Today</div></div>
+      <div class="scard"><div class="scard-icon si4"><i class="fas fa-umbrella-beach"></i></div><div class="scard-num" id="st-onleave">—</div><div class="scard-lbl">On Leave Today</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" id="tab-daily" onclick="showTab('daily')"><i class="fas fa-list"></i> Daily Log</div>
+      <div class="tab" id="tab-bulk" onclick="showTab('bulk')"><i class="fas fa-users"></i> Bulk Mark</div>
+      <div class="tab" id="tab-employee" onclick="showTab('employee')"><i class="fas fa-user"></i> Employee View</div>
+      <div class="tab" id="tab-report" onclick="showTab('report')"><i class="fas fa-chart-bar"></i> Monthly Report</div>
+    </div>
+
+    <!-- ═══════ TAB: DAILY LOG ═══════ -->
+    <div class="tab-panel active" id="panel-daily">
+      <div class="filters">
+        <input type="text" class="fc" id="f-date" placeholder="Select Date" readonly style="min-width:150px">
+        <select class="fc" id="f-station" onchange="loadDaily()"><option value="">All Stations</option></select>
+        <select class="fc" id="f-status-filter" onchange="loadDaily()">
+          <option value="">All Statuses</option>
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+          <option value="Late">Late</option>
+          <option value="Half Day">Half Day</option>
+          <option value="On Leave">On Leave</option>
+        </select>
+        <input type="text" class="fc" id="f-search" placeholder="Search employee…" oninput="filterDaily()">
+      </div>
+      <div class="cc">
+        <div class="cc-hd">
+          <h4><i class="fas fa-list" style="color:var(--primary);margin-right:6px"></i>Attendance Log</h4>
+          <span id="dailyCount" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Employee</th><th>Station</th><th>Designation</th>
+              <th>Status</th><th>In Time</th><th>Out Time</th><th>Remarks</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="dailyTbody">
+              <tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pag" id="dailyPag" style="display:none">
+          <div class="pag-info" id="dailyPagInfo"></div>
+          <div class="pag-btns" id="dailyPagBtns"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: BULK MARK ═══════ -->
+    <div class="tab-panel" id="panel-bulk">
+      <div class="form-sec">
+        <h4><i class="fas fa-calendar-check" style="color:var(--primary);margin-right:7px"></i>Bulk Attendance Marking</h4>
+        <div id="bulkAlert" class="alert"></div>
+        <div class="g3" style="margin-bottom:0">
+          <div class="fg"><label class="lbl">Date *</label><input type="text" class="finp fp" id="b-date" placeholder="DD-MM-YYYY" readonly></div>
+          <div class="fg"><label class="lbl">Station</label><select class="finp" id="b-station" onchange="loadBulkList()"><option value="">All Stations</option></select></div>
+          <div class="fg"><label class="lbl">Default Status</label>
+            <select class="finp" id="b-default-status">
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Late">Late</option>
+              <option value="Half Day">Half Day</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-info" style="margin-bottom:14px" onclick="loadBulkList()"><i class="fas fa-sync"></i> Load Employees</button>
+        <div id="bulkListWrap" style="display:none">
+          <div class="bulk-row">
+            <label><input type="checkbox" id="checkAll" onchange="toggleAll(this)"> Select All / Deselect All</label>
+            <span style="font-size:11px;color:var(--muted);margin-left:auto"><span id="selectedCount">0</span> selected</span>
+          </div>
+          <div class="tbl-wrap" style="max-height:400px;overflow-y:auto;">
+            <table>
+              <thead><tr><th style="width:40px"></th><th>Employee</th><th>Designation</th><th>Station</th><th>Status</th><th>In Time</th><th>Out Time</th><th>Remarks</th></tr></thead>
+              <tbody id="bulkTbody"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+            <button class="btn btn-back" onclick="resetBulk()">Clear</button>
+            <button class="btn btn-success" onclick="saveBulk()"><i class="fas fa-save"></i> Save Attendance</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: EMPLOYEE VIEW ═══════ -->
+    <div class="tab-panel" id="panel-employee">
+      <div class="cc">
+        <div class="cc-hd">
+          <h4><i class="fas fa-user" style="color:var(--primary);margin-right:6px"></i>Employee Attendance Calendar</h4>
+        </div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="fg" style="margin:0"><label class="lbl">Employee</label>
+            <select class="finp" id="emp-select" onchange="loadEmployeeCalendar()"><option value="">Select Employee</option></select>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;padding-bottom:0">
+            <div class="fg" style="margin:0;flex:1"><label class="lbl">Month</label>
+              <select class="finp" id="cal-month" onchange="loadEmployeeCalendar()"></select>
+            </div>
+            <div class="fg" style="margin:0;width:90px"><label class="lbl">Year</label>
+              <select class="finp" id="cal-year" onchange="loadEmployeeCalendar()"></select>
+            </div>
+          </div>
+        </div>
+        <div id="calendarWrap">
+          <div class="empty"><i class="fas fa-user-clock"></i><p>Select an employee to view their attendance calendar</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ TAB: MONTHLY REPORT ═══════ -->
+    <div class="tab-panel" id="panel-report">
+      <div class="filters">
+        <select class="fc" id="r-month"></select>
+        <select class="fc" id="r-year"></select>
+        <select class="fc" id="r-station" onchange="loadReport()"><option value="">All Stations</option></select>
+        <button class="btn btn-primary btn-sm" onclick="loadReport()"><i class="fas fa-sync"></i> Generate</button>
+        <button class="btn btn-success btn-sm" onclick="exportReportExcel()"><i class="fas fa-file-excel"></i> Export</button>
+      </div>
+      <div class="cc">
+        <div class="cc-hd">
+          <h4><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:6px"></i>Monthly Attendance Summary</h4>
+          <span id="reportCount" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table id="reportTable">
+            <thead><tr>
+              <th>#</th><th>Employee</th><th>Station</th>
+              <th style="color:#81c784">Present</th>
+              <th style="color:#ef9a9a">Absent</th>
+              <th style="color:var(--warning)">Late</th>
+              <th style="color:#90caf9">Half Day</th>
+              <th style="color:#ce93d8">On Leave</th>
+              <th>Total Days</th>
+              <th>Attendance %</th>
+            </tr></thead>
+            <tbody id="reportTbody">
+              <tr><td colspan="10" class="empty"><i class="fas fa-chart-bar" style="display:block;margin-bottom:8px"></i>Select month and click Generate</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MARK / EDIT ATTENDANCE MODAL -->
+<div class="mo" id="markModal">
+  <div class="mbox">
+    <div class="mhd">
+      <h3 id="markModalTitle"><i class="fas fa-calendar-check" style="color:var(--primary);margin-right:8px"></i>Mark Attendance</h3>
+      <button class="mcl" onclick="closeModal('markModal')">&times;</button>
+    </div>
+    <div class="mbody">
+      <div id="markAlert" class="alert"></div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Employee *</label>
+          <select class="finp" id="m-emp"><option value="">Select Employee</option></select>
+        </div>
+        <div class="fg"><label class="lbl">Date *</label>
+          <input type="text" class="finp fp" id="m-date" placeholder="DD-MM-YYYY" readonly>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Status *</label>
+          <select class="finp" id="m-status">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Late">Late</option>
+            <option value="Half Day">Half Day</option>
+            <option value="On Leave">On Leave</option>
+          </select>
+        </div>
+        <div id="timeWrap">
+          <div class="g2">
+            <div class="fg"><label class="lbl">In Time</label>
+              <input type="time" class="finp" id="m-in" value="08:00">
+            </div>
+            <div class="fg"><label class="lbl">Out Time</label>
+              <input type="time" class="finp" id="m-out" value="16:00">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label class="lbl">Remarks</label>
+        <input type="text" class="finp" id="m-remarks" placeholder="Optional remarks…">
+      </div>
+      <input type="hidden" id="m-id">
+    </div>
+    <div class="mfoo">
+      <button class="btn btn-back" onclick="closeModal('markModal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveAttendance()"><i class="fas fa-check"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── AUTH ──────────────────────────────────────────────
+Auth.requireAuth();
+async function logout(){try{await api.post('logout');}catch{}Auth.clearToken();window.location.href='index.html';}
+const _user=Auth.getUser();if(_user&&document.getElementById('userName'))document.getElementById('userName').textContent=_user.full_name||'Admin';
+
+// ── CLOCK ──────────────────────────────────────────────
+function clock(){const n=new Date();document.getElementById('dateTime').textContent=n.toLocaleDateString('en-PK',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' · '+n.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'});}
+clock();setInterval(clock,1000);
+
+// ── STATE ──────────────────────────────────────────────
+let allEmployees=[], allRecords=[], dailyCurPage=1;
+const todayStr=new Date().toLocaleDateString('en-PK',{day:'2-digit',month:'2-digit',year:'numeric'}).split('/').join('-');
+const todayISO=new Date().toISOString().slice(0,10);
+
+// ── INIT ──────────────────────────────────────────────
+async function init(){
+  // Flatpickr on date inputs
+  flatpickr('.fp',{dateFormat:'d-m-Y',allowInput:false,disableMobile:true,defaultDate:new Date()});
+
+  // Populate month/year dropdowns
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const curYear=new Date().getFullYear(), curMonth=new Date().getMonth();
+  ['cal-month','r-month'].forEach(id=>{
+    const el=document.getElementById(id);
+    months.forEach((m,i)=>{const o=document.createElement('option');o.value=i+1;o.textContent=m;if(i===curMonth)o.selected=true;el.appendChild(o);});
+  });
+  ['cal-year','r-year'].forEach(id=>{
+    const el=document.getElementById(id);
+    for(let y=curYear;y>=curYear-5;y--){const o=document.createElement('option');o.value=y;o.textContent=y;el.appendChild(o);}
+  });
+
+  // Load employees & fields
+  await Promise.all([loadEmployees(),loadFields()]);
+  initDateFilter();
+  loadStats();
+  loadDaily();
+}
+
+function initDateFilter(){
+  flatpickr('#f-date',{dateFormat:'d-m-Y',defaultDate:new Date(),disableMobile:true,onChange:()=>loadDaily()});
+  const fd=document.getElementById('f-date');fd.value=formatDate(new Date());
+}
+
+function formatDate(d){
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yyyy=d.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
+
+function parseDateInput(str){if(!str)return null;const p=str.split('-');if(p[0].length===4)return str;return `${p[2]}-${p[1]}-${p[0]}`;}
+
+async function loadEmployees(){
+  try{
+    const res=await api.get('employees',{limit:9999,page:1});
+    const d=await res.json();
+    allEmployees=d.employees||[];
+    ['m-emp','emp-select'].forEach(id=>{
+      const el=document.getElementById(id);
+      el.innerHTML='<option value="">Select Employee</option>';
+      allEmployees.forEach(e=>{el.innerHTML+=`<option value="${e.id}">${esc(e.full_name)} — ${e.emp_code||''}</option>`;});
+    });
+  }catch{}
+}
+
+async function loadFields(){
+  try{
+    const res=await api.get('fields');
+    const d=await res.json();
+    const stations=d.fields?.station||[];
+    ['f-station','b-station','r-station'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      const first=el.options[0];el.innerHTML='';el.appendChild(first);
+      stations.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o);});
+    });
+  }catch{}
+}
+
+// ── STATS (today) ──────────────────────────────────────
+async function loadStats(){
+  try{
+    const res=await api.get('attendance',{date:todayISO,limit:9999,page:1});
+    const d=await res.json();
+    const records=d.attendance||[];
+    const count=s=>records.filter(r=>r.status===s).length;
+    document.getElementById('st-present').textContent=count('Present');
+    document.getElementById('st-absent').textContent=count('Absent');
+    document.getElementById('st-late').textContent=count('Late');
+    document.getElementById('st-onleave').textContent=records.filter(r=>r.status==='On Leave').length;
+  }catch{
+    // Fallback: show dashes
+    ['st-present','st-absent','st-late','st-onleave'].forEach(id=>document.getElementById(id).textContent='0');
+  }
+}
+
+// ── DAILY LOG ──────────────────────────────────────────
+async function loadDaily(page){
+  if(page)dailyCurPage=page;
+  const dateVal=document.getElementById('f-date')?.value;
+  const dateISO=parseDateInput(dateVal);
+  const station=document.getElementById('f-station')?.value||'';
+  const status=document.getElementById('f-status-filter')?.value||'';
+  const params={limit:25,page:dailyCurPage};
+  if(dateISO)params.date=dateISO;
+  if(station)params.station=station;
+  if(status)params.status=status;
+  document.getElementById('dailyTbody').innerHTML='<tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+  try{
+    const res=await api.get('attendance',params);
+    const d=await res.json();
+    allRecords=d.attendance||[];
+    renderDaily(allRecords);
+    const total=d.total||allRecords.length;
+    const pages=d.pages||1;
+    document.getElementById('dailyCount').textContent=`${total} records`;
+    renderPagination('dailyPagBtns','dailyPagInfo',dailyCurPage,pages,total,25,loadDaily);
+    document.getElementById('dailyPag').style.display=pages>1?'flex':'none';
+  }catch{
+    document.getElementById('dailyTbody').innerHTML='<tr><td colspan="9" class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a">Failed to load. Make sure API is running.</p></td></tr>';
+  }
+}
+
+function filterDaily(){
+  const q=document.getElementById('f-search').value.toLowerCase();
+  const filtered=q?allRecords.filter(r=>(r.full_name||r.employee_name||'').toLowerCase().includes(q)):allRecords;
+  renderDaily(filtered);
+}
+
+function renderDaily(records){
+  if(!records.length){
+    document.getElementById('dailyTbody').innerHTML='<tr><td colspan="9" class="empty"><i class="fas fa-calendar-times"></i><p>No attendance records found for this date.</p></td></tr>';
+    return;
+  }
+  document.getElementById('dailyTbody').innerHTML=records.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><strong style="color:#fff">${esc(r.full_name||r.employee_name||'—')}</strong><br><small style="color:var(--muted)">${r.emp_code||''}</small></td>
+      <td>${esc(r.station||'—')}</td>
+      <td>${esc(r.designation||'—')}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${r.in_time||'—'}</td>
+      <td>${r.out_time||'—'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${esc(r.remarks||'—')}</td>
+      <td>
+        <button class="btn btn-back btn-sm" onclick="editAttendance(${r.id})" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAttendance(${r.id})" title="Delete"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+// ── BULK MARK ──────────────────────────────────────────
+async function loadBulkList(){
+  const station=document.getElementById('b-station').value;
+  document.getElementById('bulkTbody').innerHTML='<tr><td colspan="8" class="empty"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+  document.getElementById('bulkListWrap').style.display='block';
+  document.getElementById('selectedCount').textContent='0';
+  try{
+    const params={limit:9999,page:1};
+    if(station)params.station=station;
+    const res=await api.get('employees',params);
+    const d=await res.json();
+    const emps=d.employees||[];
+    const defaultStatus=document.getElementById('b-default-status').value;
+    document.getElementById('bulkTbody').innerHTML=emps.map(e=>`
+      <tr id="bulk-row-${e.id}">
+        <td><input type="checkbox" class="bulk-chk" data-id="${e.id}" onchange="updateSelectedCount()" checked></td>
+        <td><strong style="color:#fff">${esc(e.full_name)}</strong><br><small style="color:var(--muted)">${e.emp_code||''}</small></td>
+        <td>${esc(e.designation||'—')}</td>
+        <td>${esc(e.station||'—')}</td>
+        <td>
+          <select class="fc" id="bulk-status-${e.id}" style="min-width:110px">
+            <option value="Present" ${defaultStatus==='Present'?'selected':''}>Present</option>
+            <option value="Absent" ${defaultStatus==='Absent'?'selected':''}>Absent</option>
+            <option value="Late" ${defaultStatus==='Late'?'selected':''}>Late</option>
+            <option value="Half Day" ${defaultStatus==='Half Day'?'selected':''}>Half Day</option>
+            <option value="On Leave" ${defaultStatus==='On Leave'?'selected':''}>On Leave</option>
+          </select>
+        </td>
+        <td><input type="time" class="fc" id="bulk-in-${e.id}" value="08:00" style="min-width:90px"></td>
+        <td><input type="time" class="fc" id="bulk-out-${e.id}" value="16:00" style="min-width:90px"></td>
+        <td><input type="text" class="fc" id="bulk-rem-${e.id}" placeholder="Remarks" style="min-width:100px"></td>
+      </tr>`).join('');
+    updateSelectedCount();
+    document.getElementById('checkAll').checked=true;
+  }catch{
+    document.getElementById('bulkTbody').innerHTML='<tr><td colspan="8" class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i></td></tr>';
+  }
+}
+
+function toggleAll(cb){document.querySelectorAll('.bulk-chk').forEach(c=>{c.checked=cb.checked;});updateSelectedCount();}
+function updateSelectedCount(){document.getElementById('selectedCount').textContent=document.querySelectorAll('.bulk-chk:checked').length;}
+
+async function saveBulk(){
+  const dateVal=document.getElementById('b-date').value;
+  if(!dateVal){showInline('bulkAlert','❌ Please select a date.');return;}
+  const dateISO=parseDateInput(dateVal);
+  const checked=[...document.querySelectorAll('.bulk-chk:checked')];
+  if(!checked.length){showInline('bulkAlert','❌ No employees selected.');return;}
+  const records=checked.map(cb=>{
+    const id=cb.dataset.id;
+    return{
+      employee_id:id,
+      date:dateISO,
+      status:document.getElementById('bulk-status-'+id)?.value||'Present',
+      in_time:document.getElementById('bulk-in-'+id)?.value||'',
+      out_time:document.getElementById('bulk-out-'+id)?.value||'',
+      remarks:document.getElementById('bulk-rem-'+id)?.value||'',
+    };
+  });
+  try{
+    const res=await api.post('attendance/bulk',{records});
+    const d=await res.json();
+    if(d.success){showAlert('s',`✅ Attendance saved for ${records.length} employees.`);resetBulk();loadStats();loadDaily();}
+    else showInline('bulkAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('bulkAlert','❌ Server error.');}
+}
+
+function resetBulk(){
+  document.getElementById('bulkListWrap').style.display='none';
+  document.getElementById('bulkTbody').innerHTML='';
+  document.getElementById('bulkAlert').style.display='none';
+}
+
+// ── EMPLOYEE CALENDAR ──────────────────────────────────
+async function loadEmployeeCalendar(){
+  const empId=document.getElementById('emp-select').value;
+  if(!empId){document.getElementById('calendarWrap').innerHTML='<div class="empty"><i class="fas fa-user-clock"></i><p>Select an employee to view their attendance calendar</p></div>';return;}
+  const month=document.getElementById('cal-month').value;
+  const year=document.getElementById('cal-year').value;
+  try{
+    const res=await api.get('attendance',{employee_id:empId,month,year,limit:9999,page:1});
+    const d=await res.json();
+    renderCalendar(d.attendance||[],parseInt(month),parseInt(year));
+  }catch{
+    document.getElementById('calendarWrap').innerHTML='<div class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a">Failed to load</p></div>';
+  }
+}
+
+function renderCalendar(records,month,year){
+  const statusMap={};
+  records.forEach(r=>{
+    const day=new Date(r.date).getDate();
+    statusMap[day]=r.status;
+  });
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstDay=new Date(year,month-1,1).getDay();
+  const daysInMonth=new Date(year,month,0).getDate();
+  const today=new Date();
+
+  // Summary
+  const cnt=s=>records.filter(r=>r.status===s).length;
+  const summaryHTML=`
+    <div class="summary-row">
+      <span class="s-pill b-present"><i class="fas fa-circle" style="font-size:8px"></i> Present: ${cnt('Present')}</span>
+      <span class="s-pill b-absent"><i class="fas fa-circle" style="font-size:8px"></i> Absent: ${cnt('Absent')}</span>
+      <span class="s-pill b-late"><i class="fas fa-circle" style="font-size:8px"></i> Late: ${cnt('Late')}</span>
+      <span class="s-pill b-half"><i class="fas fa-circle" style="font-size:8px"></i> Half Day: ${cnt('Half Day')}</span>
+      <span class="s-pill b-leave"><i class="fas fa-circle" style="font-size:8px"></i> On Leave: ${cnt('On Leave')}</span>
+    </div>`;
+
+  let calHTML=`${summaryHTML}<div class="att-grid">`;
+  days.forEach(d=>{calHTML+=`<div class="att-day-hdr">${d}</div>`;});
+  for(let i=0;i<firstDay;i++)calHTML+='<div class="att-day empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const s=statusMap[d];
+    const isToday=today.getDate()===d&&today.getMonth()+1===month&&today.getFullYear()===year;
+    const cls=s?s.toLowerCase().replace(' ','-'):'';
+    const statusLabel=s?`<div class="day-status" style="color:${statusColor(s)}">${s}</div>`:'<div class="day-status" style="color:var(--muted)">—</div>';
+    calHTML+=`<div class="att-day ${cls} ${isToday?'today':''}">
+      <div class="day-num">${d}</div>${statusLabel}
+    </div>`;
+  }
+  calHTML+='</div>';
+  document.getElementById('calendarWrap').innerHTML=calHTML;
+}
+
+function statusColor(s){const m={Present:'#81c784',Absent:'#ef9a9a',Late:'#ffa726','Half Day':'#90caf9','On Leave':'#ce93d8'};return m[s]||'#6b8fa8';}
+
+// ── MONTHLY REPORT ──────────────────────────────────────
+async function loadReport(){
+  const month=document.getElementById('r-month').value;
+  const year=document.getElementById('r-year').value;
+  const station=document.getElementById('r-station').value;
+  document.getElementById('reportTbody').innerHTML='<tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+  try{
+    const params={month,year,limit:9999,page:1};
+    if(station)params.station=station;
+    const res=await api.get('attendance/report',params);
+    const d=await res.json();
+    renderReport(d.report||[],parseInt(month),parseInt(year));
+    document.getElementById('reportCount').textContent=(d.report||[]).length+' employees';
+  }catch{
+    // Fallback: build from attendance records
+    await buildReportFallback(month,year,station);
+  }
+}
+
+async function buildReportFallback(month,year,station){
+  try{
+    const params={month,year,limit:9999,page:1};
+    if(station)params.station=station;
+    const res=await api.get('attendance',params);
+    const d=await res.json();
+    const records=d.attendance||[];
+
+    // Group by employee
+    const empMap={};
+    records.forEach(r=>{
+      const id=r.employee_id;
+      if(!empMap[id])empMap[id]={id,name:r.full_name||r.employee_name||'—',emp_code:r.emp_code||'',station:r.station||'—',designation:r.designation||'—',Present:0,Absent:0,Late:0,'Half Day':0,'On Leave':0};
+      empMap[id][r.status]=(empMap[id][r.status]||0)+1;
+    });
+    renderReport(Object.values(empMap),parseInt(month),parseInt(year));
+    document.getElementById('reportCount').textContent=Object.keys(empMap).length+' employees';
+  }catch{
+    document.getElementById('reportTbody').innerHTML='<tr><td colspan="10" class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a">Failed to load report</p></td></tr>';
+  }
+}
+
+function renderReport(data,month,year){
+  if(!data.length){document.getElementById('reportTbody').innerHTML='<tr><td colspan="10" class="empty"><i class="fas fa-inbox"></i><p>No data. Click Generate to load.</p></td></tr>';return;}
+  const daysInMonth=new Date(year,month,0).getDate();
+  document.getElementById('reportTbody').innerHTML=data.map((r,i)=>{
+    const present=r.Present||0,absent=r.Absent||0,late=r.Late||0,half=r['Half Day']||0,leave=r['On Leave']||0;
+    const total=present+absent+late+half+leave;
+    const pct=total>0?Math.round((present+late)*100/daysInMonth):0;
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong style="color:#fff">${esc(r.full_name||r.name||'—')}</strong><br><small style="color:var(--muted)">${r.emp_code||''}</small></td>
+      <td>${esc(r.station||'—')}</td>
+      <td><strong style="color:#81c784">${present}</strong></td>
+      <td><strong style="color:#ef9a9a">${absent}</strong></td>
+      <td><strong style="color:var(--warning)">${late}</strong></td>
+      <td><strong style="color:#90caf9">${half}</strong></td>
+      <td><strong style="color:#ce93d8">${leave}</strong></td>
+      <td>${total}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;background:var(--border);border-radius:3px;height:6px"><div style="width:${pct}%;background:${pct>=80?'var(--success)':pct>=60?'var(--warning)':'#e53935'};height:6px;border-radius:3px"></div></div>
+          <span style="font-size:11px;color:${pct>=80?'#81c784':pct>=60?'var(--warning)':'#ef9a9a'};font-weight:700;min-width:30px">${pct}%</span>
+        </div>
+      </td>
+    </tr>`}).join('');
+}
+
+// ── MARK / EDIT ATTENDANCE ──────────────────────────────
+function openMarkModal(){
+  document.getElementById('m-id').value='';
+  document.getElementById('m-emp').selectedIndex=0;
+  document.getElementById('m-status').value='Present';
+  document.getElementById('m-remarks').value='';
+  document.getElementById('m-in').value='08:00';
+  document.getElementById('m-out').value='16:00';
+  document.getElementById('markAlert').style.display='none';
+  document.getElementById('markModalTitle').innerHTML='<i class="fas fa-calendar-check" style="color:var(--primary);margin-right:8px"></i>Mark Attendance';
+  const fp=document.getElementById('m-date')._flatpickr;
+  if(fp)fp.setDate(new Date());
+  document.getElementById('markModal').classList.add('open');
+}
+
+function editAttendance(id){
+  const rec=allRecords.find(r=>r.id===id);if(!rec)return;
+  document.getElementById('m-id').value=id;
+  document.getElementById('m-emp').value=rec.employee_id;
+  document.getElementById('m-status').value=rec.status||'Present';
+  document.getElementById('m-remarks').value=rec.remarks||'';
+  document.getElementById('m-in').value=rec.in_time||'08:00';
+  document.getElementById('m-out').value=rec.out_time||'16:00';
+  document.getElementById('markAlert').style.display='none';
+  document.getElementById('markModalTitle').innerHTML='<i class="fas fa-pencil-alt" style="color:var(--primary);margin-right:8px"></i>Edit Attendance';
+  const fp=document.getElementById('m-date')._flatpickr;
+  if(fp&&rec.date)fp.setDate(rec.date);
+  document.getElementById('markModal').classList.add('open');
+}
+
+async function saveAttendance(){
+  const empId=document.getElementById('m-emp').value;
+  const dateVal=document.getElementById('m-date').value;
+  const status=document.getElementById('m-status').value;
+  if(!empId||!dateVal){showInline('markAlert','❌ Employee and Date are required.');return;}
+  const id=document.getElementById('m-id').value;
+  const payload={
+    employee_id:empId,
+    date:parseDateInput(dateVal),
+    status,
+    in_time:document.getElementById('m-in').value,
+    out_time:document.getElementById('m-out').value,
+    remarks:document.getElementById('m-remarks').value,
+  };
+  try{
+    const res=id?await api.put(`attendance/${id}`,payload):await api.post('attendance',payload);
+    const d=await res.json();
+    if(d.success){closeModal('markModal');showAlert('s','✅ Attendance saved.');loadStats();loadDaily();}
+    else showInline('markAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('markAlert','❌ Server error.');}
+}
+
+async function deleteAttendance(id){
+  if(!confirm('Delete this attendance record?'))return;
+  try{
+    const res=await api.delete(`attendance/${id}`);
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Record deleted.');loadStats();loadDaily();}
+    else showAlert('e','❌ '+(d.error||'Failed.'));
+  }catch{showAlert('e','❌ Server error.');}
+}
+
+// ── EXPORT ──────────────────────────────────────────────
+async function exportExcel(){
+  const dateVal=document.getElementById('f-date')?.value;
+  const dateISO=parseDateInput(dateVal);
+  try{
+    const res=await api.get('attendance',{date:dateISO||todayISO,limit:9999,page:1});
+    const d=await res.json();
+    const rows=d.attendance||[];
+    if(!rows.length){showAlert('e','No records to export.');return;}
+    const headers=['Employee','Emp Code','Station','Designation','Date','Status','In Time','Out Time','Remarks'];
+    const data=rows.map(r=>[r.full_name||r.employee_name||'',r.emp_code||'',r.station||'',r.designation||'',r.date||'',r.status||'',r.in_time||'',r.out_time||'',r.remarks||'']);
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
+    ws['!cols']=headers.map(()=>({wch:20}));
+    XLSX.utils.book_append_sheet(wb,ws,'Attendance');
+    XLSX.writeFile(wb,`Attendance_${dateISO||todayISO}.xlsx`);
+    showAlert('s',`✅ Exported ${rows.length} records.`);
+  }catch{showAlert('e','❌ Export failed.');}
+}
+
+async function exportReportExcel(){
+  const month=document.getElementById('r-month').value;
+  const year=document.getElementById('r-year').value;
+  const rows=[...document.querySelectorAll('#reportTbody tr')];
+  if(!rows.length||rows[0].querySelector('.empty')){showAlert('e','Generate the report first.');return;}
+  const headers=['#','Employee','Emp Code','Station','Present','Absent','Late','Half Day','On Leave','Total','Attendance %'];
+  const data=rows.map(tr=>[...tr.querySelectorAll('td')].map(td=>td.innerText.trim()));
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([headers,...data]);
+  ws['!cols']=headers.map(()=>({wch:16}));
+  XLSX.utils.book_append_sheet(wb,ws,'Monthly Report');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  XLSX.writeFile(wb,`Attendance_Report_${months[month-1]}_${year}.xlsx`);
+  showAlert('s','✅ Report exported.');
+}
+
+// ── UI HELPERS ──────────────────────────────────────────
+function showTab(name){
+  ['daily','bulk','employee','report'].forEach(t=>{
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+  });
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+function statusBadge(s){const m={Present:'b-present',Absent:'b-absent',Late:'b-late','Half Day':'b-half','On Leave':'b-leave',Holiday:'b-holiday'};return`<span class="badge ${m[s]||'b-leave'}">${s||'—'}</span>`;}
+
+function renderPagination(btnId,infoId,cur,pages,total,limit,fn){
+  const from=(cur-1)*limit+1,to=Math.min(cur*limit,total);
+  document.getElementById(infoId).textContent=`Showing ${from}–${to} of ${total}`;
+  let h=`<button class="pb" onclick="${fn.name}(${cur-1})" ${cur<=1?'disabled':''}>‹</button>`;
+  const range=[...new Set([1,cur-1,cur,cur+1,pages].filter(n=>n>=1&&n<=pages))].sort((a,b)=>a-b);
+  let prev=0;
+  range.forEach(n=>{if(n-prev>1)h+=`<span class="pb" style="border:none;cursor:default">…</span>`;h+=`<button class="pb ${n===cur?'active':''}" onclick="${fn.name}(${n})">${n}</button>`;prev=n;});
+  h+=`<button class="pb" onclick="${fn.name}(${cur+1})" ${cur>=pages?'disabled':''}>›</button>`;
+  document.getElementById(btnId).innerHTML=h;
+}
+
+function showAlert(t,m){const b=document.getElementById('alertBox');b.className='alert '+(t==='s'?'al-s':'al-e');b.textContent=m;b.style.display='block';if(t==='s')setTimeout(()=>b.style.display='none',4000);}
+function showInline(id,m){const b=document.getElementById(id);b.className='alert al-e';b.textContent=m;b.style.display='block';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── FP for modal ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  flatpickr('#m-date',{dateFormat:'d-m-Y',allowInput:false,disableMobile:true,defaultDate:new Date()});
+  flatpickr('#b-date',{dateFormat:'d-m-Y',allowInput:false,disableMobile:true,defaultDate:new Date()});
+});
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Field Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
+.tl{display:flex;align-items:center;gap:12px;}
+.logo{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.topbar h1{font-size:16px;color:#fff;}
+.topbar small{font-size:10px;color:var(--muted);display:block;}
+.tr{display:flex;align-items:center;gap:10px;}
+.btn{padding:8px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-success{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.btn-danger{background:rgba(229,57,53,.15);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn:hover{opacity:.85;}
+.user-chip{background:var(--inp);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:8px;}
+.user-dot{width:8px;height:8px;border-radius:50%;background:var(--success);}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px);}
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:18px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-sect{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 14px 6px;margin-top:14px;}
+.sb-sect:first-child{margin-top:0;}
+.nav-item{padding:9px 14px;display:flex;align-items:center;gap:9px;font-size:12px;cursor:pointer;border-left:3px solid transparent;transition:.12s;text-decoration:none;color:var(--text);}
+.nav-item:hover{background:rgba(179,27,27,.07);color:#fff;}
+.nav-item.active{background:rgba(179,27,27,.12);color:#fff;border-left-color:var(--primary);font-weight:700;}
+.nav-item i{width:16px;color:var(--muted);font-size:12px;}
+.nav-item.active i{color:var(--primary);}
+.nb{background:var(--primary);color:#fff;padding:1px 6px;border-radius:20px;font-size:10px;margin-left:auto;}
+.main{padding:22px 26px;}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.ph h2{font-size:20px;color:#fff;margin-bottom:3px;font-weight:800;}
+.ph p{font-size:12px;color:var(--muted);}
+/* Field Manager Layout */
+.fm-grid{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.cc-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.cc-hd h4{font-size:13px;color:#fff;font-weight:700;}
+/* Field list */
+.field-item{padding:10px 12px;border-radius:6px;cursor:pointer;transition:.15s;border:1px solid transparent;margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+.field-item:hover{background:rgba(179,27,27,.07);border-color:var(--border);}
+.field-item.active{background:rgba(179,27,27,.12);border-color:var(--primary);}
+.field-item i{width:28px;height:28px;border-radius:6px;background:rgba(179,27,27,.15);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.field-item-info{flex:1;min-width:0;}
+.field-item-info strong{font-size:12px;color:#fff;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.field-item-info span{font-size:10px;color:var(--muted);}
+.field-item-badge{font-size:10px;background:var(--inp);border:1px solid var(--border);padding:2px 7px;border-radius:10px;color:var(--muted);flex-shrink:0;}
+.sys-badge{background:rgba(25,118,210,.15);color:#64b5f6;border-color:rgba(25,118,210,.3);}
+/* Options table */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:9px 12px;background:var(--inp);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;}
+td{padding:8px 12px;border-bottom:1px solid #0d2035;color:var(--text);}
+tr:hover td{background:rgba(179,27,27,.03);}
+.toggle-btn{width:34px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;transition:.2s;flex-shrink:0;}
+.toggle-btn.on{background:var(--success);}
+.toggle-btn.off{background:var(--border);}
+.toggle-btn::after{content:'';width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:2px;transition:.2s;}
+.toggle-btn.on::after{left:18px;}
+.toggle-btn.off::after{left:2px;}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;width:420px;max-width:95vw;}
+.modal h3{font-size:15px;color:#fff;margin-bottom:18px;font-weight:700;}
+.form-group{margin-bottom:14px;}
+.form-group label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--inp);border:1px solid var(--border);border-radius:5px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Nunito Sans',sans-serif;outline:none;transition:.15s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary);}
+.form-group select option{background:var(--inp);}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:13px;color:#fff;z-index:300;transform:translateY(80px);opacity:0;transition:.3s;display:flex;align-items:center;gap:10px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:var(--success);color:#81c784;}
+.toast.err{border-color:#e53935;color:#ef9a9a;}
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty i{font-size:32px;margin-bottom:10px;display:block;color:var(--border);}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.inline-edit{display:flex;align-items:center;gap:6px;}
+.inline-edit input{background:var(--inp);border:1px solid var(--primary);border-radius:4px;padding:4px 8px;color:#fff;font-size:12px;font-family:'Nunito Sans',sans-serif;width:180px;outline:none;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl">
+    <div class="logo"><i class="fas fa-shield-alt"></i></div>
+    <div><h1>Rescue 1122 &nbsp;<span style="font-weight:400;color:var(--muted);font-size:13px">HRM</span></h1><small id="dateTime"></small></div>
+  </div>
+  <div class="tr">
+    <div class="user-chip"><div class="user-dot"></div><span>Admin</span></div>
+    <a href="admin.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <a href="#" class="btn btn-back" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-sect">Main</div>
+    <a href="admin.html" class="nav-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-users"></i> Employees</a>
+    <div class="sb-sect">HR Operations</div>
+    <a href="add_employee_1122.html" class="nav-item"><i class="fas fa-user-plus"></i> Add Employee</a>
+    <a href="attendance.html" class="nav-item"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="payroll.html" class="nav-item"><i class="fas fa-money-bill-wave"></i> Payroll</a>    
+    <a href="bulk_import.html" class="nav-item"><i class="fas fa-file-import"></i> Bulk Import</a>
+    <a href="transfer_history.html" class="nav-item"><i class="fas fa-exchange-alt"></i> Transfers & Postings</a>
+    <a href="leave_management.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Leave Management</a>
+    <a href="employee_list.html?status=On+Leave" class="nav-item"><i class="fas fa-plane-departure"></i> On Leave</a>
+    <a href="employee_list.html?status=Suspended" class="nav-item"><i class="fas fa-ban"></i> Suspended</a>
+    <div class="sb-sect">Administration</div>
+    <a href="field_manager.html" class="nav-item active"><i class="fas fa-sliders-h"></i> Field Manager</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-file-export"></i> Export Data</a>
+  </div>
+
+  <div class="main">
+    <div class="ph">
+      <div><h2>Field Manager</h2><p>Manage dropdown options and add custom fields to employee forms</p></div>
+      <button class="btn btn-primary" onclick="openAddFieldModal()"><i class="fas fa-plus"></i> Add Custom Field</button>
+    </div>
+
+    <div class="fm-grid">
+      <!-- LEFT: Field List -->
+      <div class="cc">
+        <div class="cc-hd">
+          <h4><i class="fas fa-list" style="color:var(--primary);margin-right:6px"></i>All Fields</h4>
+          <span id="fieldCount" style="font-size:11px;color:var(--muted)">Loading...</span>
+        </div>
+        <div id="fieldList"><div class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading fields...</p></div></div>
+      </div>
+
+      <!-- RIGHT: Options Panel -->
+      <div class="cc">
+        <div class="cc-hd">
+          <h4 id="optionsPanelTitle"><i class="fas fa-mouse-pointer" style="color:var(--muted);margin-right:6px"></i>Select a field to manage its options</h4>
+          <button id="addOptionBtn" class="btn btn-primary btn-sm" onclick="openAddOptionModal()" style="display:none"><i class="fas fa-plus"></i> Add Option</button>
+        </div>
+        <div id="optionsPanel">
+          <div class="empty"><i class="fas fa-hand-point-left"></i><p>Click any field on the left to view and manage its options</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Field Modal -->
+<div class="modal-overlay" id="addFieldModal">
+  <div class="modal">
+    <h3><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:8px"></i>Add Custom Field</h3>
+    <div class="form-group">
+      <label>Field Key <small style="color:#ef9a9a">(unique, lowercase, no spaces)</small></label>
+      <input type="text" id="nfKey" placeholder="e.g. weapon_training" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')">
+    </div>
+    <div class="form-group">
+      <label>Field Label <small style="color:var(--muted)">(shown in forms)</small></label>
+      <input type="text" id="nfLabel" placeholder="e.g. Weapon Training">
+    </div>
+    <div class="form-group">
+      <label>Field Type</label>
+      <select id="nfType">
+        <option value="select">Dropdown (select)</option>
+        <option value="text">Text Input</option>
+        <option value="date">Date</option>
+        <option value="number">Number</option>
+        <option value="textarea">Text Area</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Description <small style="color:var(--muted)">(optional)</small></label>
+      <input type="text" id="nfDesc" placeholder="Brief description of this field">
+    </div>
+    <div class="form-group">
+      <label>Icon Class <small style="color:var(--muted)">(optional, FontAwesome)</small></label>
+      <input type="text" id="nfIcon" placeholder="e.g. fas fa-shield-alt" value="fas fa-list">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-back" onclick="closeModal('addFieldModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewField()"><i class="fas fa-check"></i> Create Field</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Option Modal -->
+<div class="modal-overlay" id="addOptionModal">
+  <div class="modal">
+    <h3><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:8px"></i>Add Option to <span id="addOptionFieldLabel" style="color:var(--primary)"></span></h3>
+    <div class="form-group">
+      <label>Option Value</label>
+      <input type="text" id="newOptionValue" placeholder="Enter option value..." onkeydown="if(event.key==='Enter')saveNewOption()">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-back" onclick="closeModal('addOptionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewOption()"><i class="fas fa-check"></i> Add Option</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+Auth.requireAuth();
+async function logout(){try{await api.post('logout');}catch{}Auth.clearToken();window.location.href='index.html';}
+function clock(){const n=new Date();document.getElementById('dateTime').textContent=n.toLocaleDateString('en-PK',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' · '+n.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'});}
+clock();setInterval(clock,1000);
+
+let allFields=[];
+let activeKey=null;
+
+// All system fields grouped by section
+const SYSTEM_FIELDS = [
+  { group:'👤 Personal', fields:[
+    { field_key:'blood_group',    field_label:'Blood Group',      field_type:'select', field_icon:'fas fa-tint',           field_desc:'Employee blood group' },
+    { field_key:'marital_status', field_label:'Marital Status',   field_type:'select', field_icon:'fas fa-heart',          field_desc:'Marital status options' },
+    { field_key:'religion',       field_label:'Religion',         field_type:'select', field_icon:'fas fa-place-of-worship',field_desc:'Religion options' },
+    { field_key:'mother_tongue',  field_label:'Mother Tongue',    field_type:'select', field_icon:'fas fa-language',       field_desc:'Language options' },
+    { field_key:'domicile',       field_label:'Domicile District',field_type:'select', field_icon:'fas fa-map-marker-alt', field_desc:'District domicile options' },
+  ]},
+  { group:'💼 Employment', fields:[
+    { field_key:'designation',       field_label:'Designation',       field_type:'select', field_icon:'fas fa-id-badge',       field_desc:'Job designations' },
+    { field_key:'category',          field_label:'Category',          field_type:'select', field_icon:'fas fa-layer-group',    field_desc:'Employee category' },
+    { field_key:'emp_status',        field_label:'Employment Status', field_type:'select', field_icon:'fas fa-toggle-on',      field_desc:'Active, On Leave, etc.' },
+    { field_key:'wing',              field_label:'Wing',              field_type:'select', field_icon:'fas fa-sitemap',        field_desc:'Operational wings' },
+    { field_key:'station',           field_label:'Station',           field_type:'select', field_icon:'fas fa-map-marker-alt', field_desc:'Rescue stations' },
+    { field_key:'batch_no',          field_label:'Batch No.',         field_type:'select', field_icon:'fas fa-layer-group',    field_desc:'Training batch numbers' },
+    { field_key:'pay_scale',         field_label:'Pay Scale / Grade', field_type:'select', field_icon:'fas fa-star',           field_desc:'BPS grade options' },
+    { field_key:'reporting_officer', field_label:'Reporting Officer', field_type:'select', field_icon:'fas fa-user-tie',       field_desc:'Reporting officers list' },
+  ]},
+  { group:'📋 Contract', fields:[
+    { field_key:'contract_tier', field_label:'Contract Tier', field_type:'select', field_icon:'fas fa-file-contract', field_desc:'Contract tier options (01-10)' },
+  ]},
+  { group:'🎓 Education', fields:[
+    { field_key:'education', field_label:'Education Level', field_type:'select', field_icon:'fas fa-graduation-cap', field_desc:'Highest education options' },
+  ]},
+  { group:'📄 Documents', fields:[
+    { field_key:'police_verify', field_label:'Police Verification', field_type:'select', field_icon:'fas fa-shield-alt',   field_desc:'Verification status options' },
+    { field_key:'medical_cert',  field_label:'Medical Certificate', field_type:'select', field_icon:'fas fa-file-medical', field_desc:'Certificate status options' },
+    { field_key:'insurance',     field_label:'Insurance Plan',      field_type:'select', field_icon:'fas fa-umbrella',     field_desc:'Insurance plan options' },
+  ]},
+];
+
+// ── TOAST ──────────────────────────────────────────────
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent='';
+  const ic=document.createElement('i');
+  ic.className=type==='ok'?'fas fa-check-circle':'fas fa-exclamation-circle';
+  t.appendChild(ic);
+  t.appendChild(document.createTextNode(' '+msg));
+  t.className='toast show '+(type==='ok'?'ok':'err');
+  setTimeout(()=>t.className='toast',3000);
+}
+
+// ── MODAL ──────────────────────────────────────────────
+function openAddFieldModal(){document.getElementById('nfKey').value='';document.getElementById('nfLabel').value='';document.getElementById('nfDesc').value='';document.getElementById('nfIcon').value='fas fa-list';document.getElementById('nfType').value='select';document.getElementById('addFieldModal').classList.add('show');document.getElementById('nfKey').focus();}
+function openAddOptionModal(){if(!activeKey)return;document.getElementById('newOptionValue').value='';document.getElementById('addOptionFieldLabel').textContent=allFields.find(f=>f.field_key===activeKey)?.field_label||activeKey;document.getElementById('addOptionModal').classList.add('show');document.getElementById('newOptionValue').focus();}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+
+// ── LOAD FIELDS ────────────────────────────────────────
+async function loadFields(){
+  try{
+    const res=await api.get('fields/definitions');
+    const data=await res.json();
+    if(!data.success)throw new Error();
+    allFields=data.fields;
+    renderFieldList();
+  }catch(e){
+    // Still render system fields even if API fails
+    allFields=[];
+    renderFieldList();
+  }
+}
+
+function renderFieldList(){
+  // Count all fields: system + custom
+  const customFields = allFields.filter(f=>!f.is_system);
+  const totalSystem = SYSTEM_FIELDS.reduce((a,g)=>a+g.fields.length,0);
+  document.getElementById('fieldCount').textContent=(totalSystem+customFields.length)+' fields';
+
+  let html='';
+
+  // Render system field groups
+  SYSTEM_FIELDS.forEach(group=>{
+    html+=`<div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:10px 4px 5px;margin-top:6px">${group.group}</div>`;
+    group.fields.forEach(f=>{
+      // Merge live option count from API data if available
+      const live = allFields.find(a=>a.field_key===f.field_key);
+      const badge = live ? live.active_options+' opts' : 'System';
+      html+=`
+      <div class="field-item ${activeKey===f.field_key?'active':''}" onclick="selectField('${f.field_key}')">
+        <i class="${f.field_icon||'fas fa-list'}"></i>
+        <div class="field-item-info">
+          <strong>${f.field_label}</strong>
+          <span>${f.field_key}</span>
+        </div>
+        <span class="field-item-badge sys-badge">${badge}</span>
+      </div>`;
+    });
+  });
+
+  // Render custom fields group
+  if(customFields.length){
+    html+=`<div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:10px 4px 5px;margin-top:6px">⚙️ Custom Fields</div>`;
+    customFields.forEach(f=>{
+      html+=`
+      <div class="field-item ${activeKey===f.field_key?'active':''}" onclick="selectField('${f.field_key}')">
+        <i class="${f.field_icon||'fas fa-list'}"></i>
+        <div class="field-item-info">
+          <strong>${f.field_label}</strong>
+          <span>${f.field_key} &bull; ${f.field_type}</span>
+        </div>
+        <span class="field-item-badge">${f.active_options} opts</span>
+      </div>`;
+    });
+  }
+
+  document.getElementById('fieldList').innerHTML=html||'<div class="empty"><i class="fas fa-inbox"></i><p>No fields found</p></div>';
+}
+
+// ── SELECT FIELD ───────────────────────────────────────
+async function selectField(key){
+  activeKey=key;
+  renderFieldList();
+
+  // Find field def: check system groups first, then API custom fields
+  let field = null;
+  for(const g of SYSTEM_FIELDS){
+    field = g.fields.find(f=>f.field_key===key);
+    if(field) break;
+  }
+  const isSystemField = !!field;
+  if(!field) field = allFields.find(f=>f.field_key===key);
+
+  document.getElementById('optionsPanelTitle').innerHTML=`<i class="${field?.field_icon||'fas fa-list'}" style="color:var(--primary);margin-right:6px"></i>${field?.field_label||key} <small style="color:var(--muted);font-weight:400;font-size:11px">&nbsp;—&nbsp;${field?.field_desc||''}</small>`;
+
+  const addBtn=document.getElementById('addOptionBtn');
+
+  // Delete button: only for custom (non-system) fields
+  let delBtn=document.getElementById('delFieldBtn');
+  if(!delBtn){
+    delBtn=document.createElement('button');
+    delBtn.id='delFieldBtn';
+    delBtn.className='btn btn-danger btn-sm';
+    delBtn.innerHTML='<i class="fas fa-trash"></i> Delete Field';
+    document.querySelector('.cc-hd').appendChild(delBtn);
+  }
+  if(isSystemField || field?.is_system){
+    delBtn.style.display='none';
+  } else {
+    delBtn.style.display='inline-flex';
+    delBtn.onclick=()=>deleteField(key,field?.field_label);
+  }
+
+  // All system fields in our list are select type — always load options
+  if(field?.field_type==='select' || isSystemField){
+    addBtn.style.display='inline-flex';
+    loadOptions(key);
+  } else {
+    addBtn.style.display='none';
+    document.getElementById('optionsPanel').innerHTML=`<div class="empty"><i class="fas fa-info-circle" style="color:var(--info)"></i><p>This is a <strong style="color:#fff">${field?.field_type}</strong> field — employees type their answer directly.<br>No options needed.</p></div>`;
+  }
+}
+
+// ── LOAD OPTIONS ───────────────────────────────────────
+async function loadOptions(key){
+  document.getElementById('optionsPanel').innerHTML='<div class="empty"><i class="fas fa-spinner fa-spin"></i><p>Loading options...</p></div>';
+  try{
+    const res=await api.get('fields/'+key+'/options');
+    const data=await res.json();
+    if(!data.success)throw new Error();
+    renderOptions(data.options,key);
+  }catch(e){
+    document.getElementById('optionsPanel').innerHTML='<div class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a">Failed to load options</p></div>';
+  }
+}
+
+function renderOptions(options,key){
+  if(!options.length){
+    document.getElementById('optionsPanel').innerHTML='<div class="empty"><i class="fas fa-inbox"></i><p>No options yet. Click <strong style="color:#fff">Add Option</strong> to add the first one.</p></div>';
+    return;
+  }
+  const rows=options.map(o=>`
+    <tr id="opt-row-${o.id}">
+      <td style="color:#fff;font-weight:600">${escHtml(o.field_value)}</td>
+      <td style="text-align:center">
+        <button class="toggle-btn ${o.is_active?'on':'off'}" onclick="toggleOption(${o.id},'${key}')" title="${o.is_active?'Active — click to deactivate':'Inactive — click to activate'}"></button>
+      </td>
+      <td>
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <button class="btn btn-back btn-sm" onclick="startEditOption(${o.id},'${escHtml(o.field_value).replace(/'/g,"\\'")}','${key}')"><i class="fas fa-pencil-alt"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteOption(${o.id},'${key}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+  document.getElementById('optionsPanel').innerHTML=`
+    <table>
+      <thead><tr><th>Option Value</th><th style="text-align:center;width:80px">Active</th><th style="text-align:right;width:100px">Actions</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── INLINE EDIT OPTION ─────────────────────────────────
+function startEditOption(id,currentVal,key){
+  const row=document.getElementById('opt-row-'+id);
+  if(!row)return;
+  const td=row.cells[0];
+  td.innerHTML=`<div class="inline-edit"><input type="text" value="${currentVal}" id="ei-${id}" onkeydown="if(event.key==='Enter')saveEditOption(${id},'${key}');if(event.key==='Escape')loadOptions('${key}')"><button class="btn btn-success btn-sm" onclick="saveEditOption(${id},'${key}')"><i class="fas fa-check"></i></button><button class="btn btn-back btn-sm" onclick="loadOptions('${key}')"><i class="fas fa-times"></i></button></div>`;
+  document.getElementById('ei-'+id).focus();
+}
+
+async function saveEditOption(id,key){
+  const val=document.getElementById('ei-'+id)?.value?.trim();
+  if(!val)return toast('Option value cannot be empty','err');
+  try{
+    const res=await api.put('fields/options/'+id,{field_value:val});
+    const data=await res.json();
+    if(!data.success)throw new Error(data.error||'Failed');
+    toast('Option updated');
+    loadOptions(key);
+    refreshFieldCount(key);
+  }catch(e){toast(e.message||'Failed to update','err');}
+}
+
+// ── TOGGLE OPTION ──────────────────────────────────────
+async function toggleOption(id,key){
+  try{
+    const res=await api.patch('fields/options/'+id+'/toggle',{});
+    const data=await res.json();
+    if(!data.success)throw new Error();
+    toast(data.message||'Toggled');
+    loadOptions(key);
+  }catch(e){toast('Failed to toggle','err');}
+}
+
+// ── DELETE OPTION ──────────────────────────────────────
+async function deleteOption(id,key){
+  if(!confirm('Delete this option? Employees who have this value will keep it, but it won\'t appear in new forms.'))return;
+  try{
+    const res=await api.delete('fields/options/'+id);
+    const data=await res.json();
+    if(!data.success)throw new Error();
+    toast('Option deleted');
+    loadOptions(key);
+    refreshFieldCount(key);
+  }catch(e){toast('Failed to delete','err');}
+}
+
+// ── ADD OPTION ─────────────────────────────────────────
+async function saveNewOption(){
+  const val=document.getElementById('newOptionValue').value.trim();
+  if(!val)return toast('Please enter an option value','err');
+  try{
+    const res=await api.post('fields/'+activeKey+'/options',{field_value:val});
+    const data=await res.json();
+    if(!data.success)throw new Error(data.error||'Failed');
+    toast('Option added');
+    closeModal('addOptionModal');
+    loadOptions(activeKey);
+    refreshFieldCount(activeKey);
+  }catch(e){toast(e.message||'Failed to add option','err');}
+}
+
+// ── ADD FIELD ──────────────────────────────────────────
+async function saveNewField(){
+  const key=document.getElementById('nfKey').value.trim();
+  const label=document.getElementById('nfLabel').value.trim();
+  const type=document.getElementById('nfType').value;
+  const desc=document.getElementById('nfDesc').value.trim();
+  const icon=document.getElementById('nfIcon').value.trim()||'fas fa-list';
+  if(!key)return toast('Field key is required','err');
+  if(!label)return toast('Field label is required','err');
+  try{
+    const res=await api.post('fields/definitions',{field_key:key,field_label:label,field_type:type,field_desc:desc,field_icon:icon});
+    const data=await res.json();
+    if(!data.success)throw new Error(data.error||'Failed');
+    toast('Field "'+label+'" created successfully');
+    closeModal('addFieldModal');
+    await loadFields();
+    selectField(data.field_key||key);
+  }catch(e){toast(e.message||'Failed to create field','err');}
+}
+
+// ── DELETE FIELD ───────────────────────────────────────
+async function deleteField(key,label){
+  if(!confirm('Delete field "'+label+'"?\n\nThis will also delete all its options and remove this field data from all employees. This cannot be undone.'))return;
+  try{
+    const res=await api.delete('fields/definitions/'+allFields.find(f=>f.field_key===key)?.id);
+    const data=await res.json();
+    if(!data.success)throw new Error(data.error||'Failed');
+    toast('Field "'+label+'" deleted');
+    activeKey=null;
+    document.getElementById('optionsPanel').innerHTML='<div class="empty"><i class="fas fa-hand-point-left"></i><p>Click any field on the left to manage its options</p></div>';
+    document.getElementById('optionsPanelTitle').innerHTML='<i class="fas fa-mouse-pointer" style="color:var(--muted);margin-right:6px"></i>Select a field to manage its options';
+    document.getElementById('addOptionBtn').style.display='none';
+    const delBtn=document.getElementById('delFieldBtn');if(delBtn)delBtn.style.display='none';
+    await loadFields();
+  }catch(e){toast(e.message||'Failed to delete field','err');}
+}
+
+// ── HELPERS ────────────────────────────────────────────
+function refreshFieldCount(key){
+  loadFields().then(()=>{if(activeKey===key){}});
+}
+function escHtml(str){const d=document.createElement('div');d.appendChild(document.createTextNode(str));return d.innerHTML;}
+
+// ── INIT ───────────────────────────────────────────────
+loadFields();
+</script>
+</body>
+</html>

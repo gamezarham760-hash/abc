@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Leave Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
+.tl{display:flex;align-items:center;gap:10px;}
+.logo{width:38px;height:38px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;}
+.topbar h1{font-size:15px;color:#fff;}
+.tr{display:flex;gap:8px;}
+.btn{padding:8px 15px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-info{background:var(--info);color:#fff;}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.btn:hover{opacity:.85;}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px);}
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-sect{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 14px 6px;margin-top:14px;}
+.sb-sect:first-child{margin-top:0;}
+.nav-item{padding:8px 14px;display:flex;align-items:center;gap:9px;font-size:12px;cursor:pointer;border-left:3px solid transparent;transition:.12s;text-decoration:none;color:var(--text);}
+.nav-item:hover{background:rgba(179,27,27,.07);color:#fff;}
+.nav-item.active{background:rgba(179,27,27,.12);color:#fff;border-left-color:var(--primary);font-weight:700;}
+.nav-item i{width:14px;color:var(--muted);font-size:12px;}
+.nav-item.active i{color:var(--primary);}
+.main{padding:20px 24px;}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.ph h2{font-size:18px;color:#fff;font-weight:800;}
+.ph p{font-size:11px;color:var(--muted);margin-top:2px;}
+/* TABS */
+.tabs{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:18px;}
+.tab{padding:10px 18px;font-size:12px;font-weight:600;cursor:pointer;transition:.12s;border-right:1px solid var(--border);color:var(--muted);}
+.tab:hover{background:rgba(179,27,27,.07);color:#fff;}
+.tab.active{background:rgba(179,27,27,.14);color:#fff;}
+.tab:last-child{border-right:none;}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:14px;}
+.scard-num{font-size:26px;font-weight:800;color:var(--primary);}
+.scard-lbl{font-size:10px;color:var(--muted);margin-top:3px;}
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.fc{padding:8px 11px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text);font-family:'Nunito Sans',sans-serif;}
+.fc:focus{outline:none;border-color:var(--primary);}
+select.fc option{background:#0a1624;}
+/* TABLE */
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.tcard-hd{background:var(--inp);padding:11px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.tcard-hd h4{font-size:13px;color:#fff;}
+.tcard-hd span{font-size:11px;color:var(--muted);}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:9px 13px;background:#051020;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap;}
+td{padding:9px 13px;border-bottom:1px solid #0d2035;color:var(--text);}
+tr:hover td{background:rgba(179,27,27,.03);}
+.badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-pend{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.b-appr{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.b-rej{background:rgba(229,57,53,.2);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.b-can{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+/* BALANCE TABLE */
+.bal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.bal-card{background:var(--card);border:1px solid var(--border);border-radius:7px;padding:14px;}
+.bal-type{font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;}
+.bal-bar-bg{background:var(--border);border-radius:3px;height:6px;margin:6px 0;}
+.bal-bar{height:6px;border-radius:3px;background:var(--success);transition:.3s;}
+.bal-nums{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);}
+/* FORM */
+.form-sec{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px;}
+.form-sec h4{font-size:13px;color:#fff;margin-bottom:16px;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.finp{width:100%;padding:9px 12px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--text);font-family:'Nunito Sans',sans-serif;}
+.finp:focus{outline:none;border-color:var(--primary);}
+.finp::placeholder{color:#2a4a6a;}
+select.finp option{background:#0a1624;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+/* ALERT */
+.alert{padding:10px 14px;border-radius:5px;font-size:12px;margin-bottom:14px;display:none;}
+.al-s{background:rgba(67,160,71,.15);border:1px solid var(--success);color:#81c784;}
+.al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999;}
+.mo.open{display:flex;}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:8px;width:460px;max-width:95vw;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.mhd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.mhd h3{font-size:14px;color:#fff;}
+.mcl{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+.mbody{padding:18px;}
+.mfoo{padding:13px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+/* Flatpickr dark */
+.flatpickr-calendar{background:#0c1e2e!important;border:1px solid #1e3a5f!important;}
+.flatpickr-day{color:#c0d4e8!important;}.flatpickr-day:hover{background:#1e3a5f!important;}
+.flatpickr-day.selected{background:#b31b1b!important;border-color:#b31b1b!important;color:#fff!important;}
+.flatpickr-months,.flatpickr-weekdays{background:#0a1624!important;}
+.flatpickr-current-month,.flatpickr-weekday{color:#c0d4e8!important;fill:#c0d4e8!important;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl"><div class="logo"><i class="fas fa-shield-alt"></i></div><div><h1>Rescue 1122 — Leave Management</h1></div></div>
+  <div class="tr">
+    <button class="btn btn-primary" onclick="showTab('apply')"><i class="fas fa-plus"></i> Apply Leave</button>
+    <a href="admin.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
+  </div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-sect">Main</div>
+    <a href="admin.html" class="nav-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-users"></i> Employees</a>
+    <div class="sb-sect">Leave</div>
+    <a href="attendance.html" class="nav-item"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="payroll.html" class="nav-item"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+    <a href="#" class="nav-item active" onclick="showTab('all');return false"><i class="fas fa-calendar-alt"></i> All Applications</a>
+    <a href="#" class="nav-item" onclick="showTab('pending');return false"><i class="fas fa-clock"></i> Pending</a>
+    <a href="#" class="nav-item" onclick="showTab('apply');return false"><i class="fas fa-plus-circle"></i> Apply Leave</a>
+    <a href="#" class="nav-item" onclick="showTab('types');return false"><i class="fas fa-list"></i> Leave Types</a>
+    <div class="sb-sect">HR</div>
+    <a href="transfer_history.html" class="nav-item"><i class="fas fa-exchange-alt"></i> Transfers</a>
+    <a href="field_manager.html" class="nav-item"><i class="fas fa-sliders-h"></i> Field Manager</a>
+  </div>
+
+  <div class="main">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="scard"><div class="scard-num" id="st-total">—</div><div class="scard-lbl">Total Applications</div></div>
+      <div class="scard"><div class="scard-num" id="st-pending" style="color:var(--warning)">—</div><div class="scard-lbl">Pending Approval</div></div>
+      <div class="scard"><div class="scard-num" id="st-approved" style="color:var(--success)">—</div><div class="scard-lbl">Approved</div></div>
+      <div class="scard"><div class="scard-num" id="st-rejected" style="color:#ef9a9a">—</div><div class="scard-lbl">Rejected</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" id="tab-all" onclick="showTab('all')"><i class="fas fa-list"></i> All Applications</div>
+      <div class="tab" id="tab-pending" onclick="showTab('pending')"><i class="fas fa-clock"></i> Pending</div>
+      <div class="tab" id="tab-apply" onclick="showTab('apply')"><i class="fas fa-plus"></i> Apply Leave</div>
+      <div class="tab" id="tab-types" onclick="showTab('types')"><i class="fas fa-cog"></i> Leave Types</div>
+    </div>
+
+    <!-- ALL APPLICATIONS -->
+    <div id="panel-all">
+      <div class="filters">
+        <select class="fc" id="f-status" onchange="loadAll()"><option value="">All Statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option><option>Cancelled</option></select>
+        <select class="fc" id="f-year" onchange="loadAll()"></select>
+        <input type="text" class="fc" id="f-search" placeholder="Search employee..." oninput="filterTable()">
+      </div>
+      <div class="tcard">
+        <div class="tcard-hd"><h4>Leave Applications</h4><span id="allCount"></span></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>#</th><th>Employee</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="allTbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)"><i class="fas fa-spinner fa-spin"></i></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENDING -->
+    <div id="panel-pending" style="display:none">
+      <div class="tcard">
+        <div class="tcard-hd"><h4><i class="fas fa-clock" style="color:var(--warning);margin-right:6px"></i>Pending Approval</h4><span id="pendCount"></span></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>#</th><th>Employee</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead>
+          <tbody id="pendTbody"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)"><i class="fas fa-spinner fa-spin"></i></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPLY LEAVE -->
+    <div id="panel-apply" style="display:none">
+      <div class="form-sec">
+        <h4><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:7px"></i>New Leave Application</h4>
+        <div id="applyAlert" class="alert"></div>
+        <div class="g2" style="margin-bottom:0">
+          <div class="fg"><label class="lbl">Employee *</label>
+            <select class="finp" id="a-emp"><option value="">Select Employee</option></select></div>
+          <div class="fg"><label class="lbl">Leave Type *</label>
+            <select class="finp" id="a-type"><option value="">Select Type</option></select></div>
+        </div>
+        <div class="g3" style="margin-top:14px">
+          <div class="fg"><label class="lbl">From Date *</label><input type="text" class="finp fp" id="a-from" placeholder="DD-MM-YYYY" readonly></div>
+          <div class="fg"><label class="lbl">To Date *</label><input type="text" class="finp fp" id="a-to" placeholder="DD-MM-YYYY" readonly onchange="calcDays()"></div>
+          <div class="fg"><label class="lbl">Days</label>
+            <div style="padding:9px 12px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:14px;font-weight:700;color:var(--primary)" id="a-days">—</div>
+          </div>
+        </div>
+        <div class="fg" style="margin-top:14px"><label class="lbl">Reason</label>
+          <textarea class="finp" id="a-reason" rows="2" placeholder="Brief reason for leave..."></textarea></div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-back" onclick="resetApply()">Clear</button>
+          <button class="btn btn-success" onclick="submitLeave()"><i class="fas fa-paper-plane"></i> Submit Application</button>
+        </div>
+      </div>
+
+      <!-- Employee Leave Balance -->
+      <div id="balanceSection" style="display:none">
+        <div class="tcard-hd" style="background:var(--card);border:1px solid var(--border);border-radius:8px 8px 0 0;padding:12px 16px;border-bottom:1px solid var(--border)">
+          <h4 style="font-size:13px;color:#fff"><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:6px"></i>Leave Balance — <span id="balEmpName"></span></h4>
+        </div>
+        <div class="bal-grid" id="balGrid" style="background:var(--card);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:14px;border-top:none"></div>
+      </div>
+    </div>
+
+    <!-- LEAVE TYPES -->
+    <div id="panel-types" style="display:none">
+      <div class="form-sec">
+        <h4>Add / Edit Leave Type</h4>
+        <div id="typeAlert" class="alert"></div>
+        <div class="g3">
+          <div class="fg"><label class="lbl">Name *</label><input type="text" class="finp" id="lt-name" placeholder="e.g. Annual Leave"></div>
+          <div class="fg"><label class="lbl">Days Allowed / Year</label><input type="number" class="finp" id="lt-days" min="0" placeholder="30"></div>
+          <div class="fg"><label class="lbl">Carry Forward?</label>
+            <select class="finp" id="lt-cf"><option value="0">No</option><option value="1">Yes</option></select></div>
+        </div>
+        <div class="fg"><label class="lbl">Description</label><input type="text" class="finp" id="lt-desc" placeholder="Brief description"></div>
+        <input type="hidden" id="lt-id">
+        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn btn-back" onclick="resetType()">Clear</button>
+          <button class="btn btn-success" onclick="saveType()"><i class="fas fa-save"></i> Save Type</button>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="tcard-hd"><h4>Leave Types</h4></div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>#</th><th>Name</th><th>Days/Year</th><th>Carry Forward</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody id="typesTbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE/REJECT MODAL -->
+<div class="mo" id="actionModal">
+  <div class="mbox">
+    <div class="mhd"><h3 id="actionTitle">Approve / Reject Leave</h3><button class="mcl" onclick="closeAction()">&times;</button></div>
+    <div class="mbody">
+      <div id="actionAlert" class="alert"></div>
+      <div style="margin-bottom:13px"><label class="lbl">Decision *</label>
+        <select class="finp" id="ac-status"><option value="Approved">✅ Approve</option><option value="Rejected">❌ Reject</option><option value="Cancelled">Cancel Application</option></select></div>
+      <div><label class="lbl">Remarks</label><textarea class="finp" id="ac-remarks" rows="2" placeholder="Add remarks (optional)..."></textarea></div>
+      <input type="hidden" id="ac-id">
+    </div>
+    <div class="mfoo"><button class="btn btn-back" onclick="closeAction()">Cancel</button><button class="btn btn-success" onclick="submitAction()"><i class="fas fa-check"></i> Confirm</button></div>
+  </div>
+</div>
+
+<script>
+Auth.requireAuth();
+async function logout(){try{await api.post('logout');}catch{}Auth.clearToken();window.location.href='index.html';}
+let allLeaves=[], leaveTypes=[], allEmps=[];
+
+async function init(){
+  // Init flatpickr
+  flatpickr('.fp',{dateFormat:'d-m-Y',allowInput:false,disableMobile:true,
+    onChange:function(sel,dateStr,inst){if(inst.element.id==='a-to')calcDays();}
+  });
+
+  // Year filter
+  const yr=document.getElementById('f-year');
+  const cy=new Date().getFullYear();
+  for(let y=cy;y>=cy-5;y--){yr.innerHTML+=`<option value="${y}">${y}</option>`;}
+
+  await Promise.all([loadAll(),loadTypes(),loadEmployees()]);
+}
+
+async function loadEmployees(){
+  try{
+    const res=await api.get('employees',{limit:9999,page:1});
+    const d=await res.json();
+    allEmps=d.employees||[];
+    const sel=document.getElementById('a-emp');
+    sel.innerHTML='<option value="">Select Employee</option>';
+    allEmps.forEach(e=>{sel.innerHTML+=`<option value="${e.id}">${esc(e.full_name)} — ${e.emp_code||''}</option>`;});
+    sel.onchange=()=>loadBalance();
+  }catch{}
+}
+
+async function loadTypes(){
+  try{
+    const res=await api.get('leave-types');
+    const d=await res.json();
+    leaveTypes=d.types||[];
+    const sel=document.getElementById('a-type');
+    sel.innerHTML='<option value="">Select Type</option>';
+    leaveTypes.forEach(t=>{sel.innerHTML+=`<option value="${t.id}">${esc(t.name)} (${t.days_allowed} days/yr)</option>`;});
+    renderTypes();
+  }catch{}
+}
+
+function renderTypes(){
+  document.getElementById('typesTbody').innerHTML=leaveTypes.map((t,i)=>`
+    <tr><td>${i+1}</td><td><strong style="color:#fff">${esc(t.name)}</strong></td>
+    <td>${t.days_allowed}</td><td>${t.carry_forward?'<span class="badge b-appr">Yes</span>':'No'}</td>
+    <td>${esc(t.description||'—')}</td>
+    <td><button class="btn btn-back btn-sm" onclick="editType(${t.id})"><i class="fas fa-edit"></i></button></td></tr>`).join('');
+}
+
+async function loadAll(){
+  const status=document.getElementById('f-status')?.value||'';
+  const year=document.getElementById('f-year')?.value||'';
+  try{
+    const res=await api.get('leaves',{status,year});
+    const d=await res.json();
+    allLeaves=d.leaves||[];
+    renderAll(allLeaves);
+    updateStats(allLeaves);
+    document.getElementById('allCount').textContent=allLeaves.length+' records';
+    // Also update pending
+    const pend=allLeaves.filter(l=>l.status==='Pending');
+    renderPending(pend);
+    document.getElementById('pendCount').textContent=pend.length+' pending';
+  }catch(e){console.error(e);}
+}
+
+function renderAll(leaves){
+  if(!leaves.length){document.getElementById('allTbody').innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">No applications found.</td></tr>';return;}
+  document.getElementById('allTbody').innerHTML=leaves.map((l,i)=>`
+    <tr><td>${i+1}</td>
+    <td><strong style="color:#fff">${esc(l.employee_name||'—')}</strong><br><small style="color:var(--muted)">${l.emp_code||''}</small></td>
+    <td>${esc(l.leave_type_name||'—')}</td>
+    <td>${l.from_date||'—'}</td><td>${l.to_date||'—'}</td>
+    <td><strong style="color:var(--primary)">${l.days}</strong></td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${esc(l.reason||'—')}</td>
+    <td>${statusBadge(l.status)}</td>
+    <td>${l.status==='Pending'?`<button class="btn btn-info btn-sm" onclick="openAction(${l.id})"><i class="fas fa-gavel"></i> Decide</button>`:''}</td></tr>`).join('');
+}
+
+function renderPending(leaves){
+  if(!leaves.length){document.getElementById('pendTbody').innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--success)"><i class="fas fa-check-circle" style="font-size:24px;display:block;margin-bottom:8px"></i>No pending applications</td></tr>';return;}
+  document.getElementById('pendTbody').innerHTML=leaves.map((l,i)=>`
+    <tr><td>${i+1}</td>
+    <td><strong style="color:#fff">${esc(l.employee_name||'—')}</strong></td>
+    <td>${esc(l.leave_type_name||'—')}</td>
+    <td>${l.from_date||'—'}</td><td>${l.to_date||'—'}</td>
+    <td><strong style="color:var(--primary)">${l.days}</strong></td>
+    <td>${esc(l.reason||'—')}</td>
+    <td><button class="btn btn-info btn-sm" onclick="openAction(${l.id})"><i class="fas fa-gavel"></i> Decide</button></td></tr>`).join('');
+}
+
+function updateStats(leaves){
+  document.getElementById('st-total').textContent=leaves.length;
+  document.getElementById('st-pending').textContent=leaves.filter(l=>l.status==='Pending').length;
+  document.getElementById('st-approved').textContent=leaves.filter(l=>l.status==='Approved').length;
+  document.getElementById('st-rejected').textContent=leaves.filter(l=>l.status==='Rejected').length;
+}
+
+function filterTable(){
+  const q=document.getElementById('f-search').value.toLowerCase();
+  renderAll(q?allLeaves.filter(l=>(l.employee_name||'').toLowerCase().includes(q)):allLeaves);
+}
+
+function statusBadge(s){const m={Pending:'b-pend',Approved:'b-appr',Rejected:'b-rej',Cancelled:'b-can'};return`<span class="badge ${m[s]||'b-can'}">${s}</span>`;}
+
+async function loadBalance(){
+  const empId=document.getElementById('a-emp').value;
+  if(!empId){document.getElementById('balanceSection').style.display='none';return;}
+  const emp=allEmps.find(e=>e.id==empId);
+  document.getElementById('balEmpName').textContent=emp?.full_name||'';
+  try{
+    const res=await api.get(`employees/${empId}/leave-balance`,{year:new Date().getFullYear()});
+    const d=await res.json();
+    if(!d.success)return;
+    document.getElementById('balGrid').innerHTML=d.balance.map(b=>`
+      <div class="bal-card">
+        <div class="bal-type">${esc(b.type_name)}</div>
+        <div class="bal-bar-bg"><div class="bal-bar" style="width:${b.days_allowed?Math.min(100,(b.days_used/b.days_allowed)*100):0}%;background:${b.days_left<=0?'#e53935':'var(--success)'}"></div></div>
+        <div class="bal-nums"><span>${b.days_used} used</span><span style="color:${b.days_left<=0?'#ef9a9a':'#81c784'}">${b.days_left} left of ${b.days_allowed}</span></div>
+      </div>`).join('');
+    document.getElementById('balanceSection').style.display='block';
+  }catch{}
+}
+
+function calcDays(){
+  const f=document.getElementById('a-from')._flatpickr?.selectedDates[0];
+  const t=document.getElementById('a-to')._flatpickr?.selectedDates[0];
+  if(f&&t){const days=Math.round((t-f)/86400000)+1;document.getElementById('a-days').textContent=days>0?days+'':'-';}
+}
+
+async function submitLeave(){
+  const empId  = document.getElementById('a-emp').value;
+  const typeId = document.getElementById('a-type').value;
+  const from   = document.getElementById('a-from').value;  // DD-MM-YYYY
+  const to     = document.getElementById('a-to').value;    // DD-MM-YYYY
+  const reason = document.getElementById('a-reason').value.trim();
+  if(!empId || !typeId || !from || !to){
+    showInline('applyAlert','All required fields must be filled.');
+    return;
+  }
+
+  // ✅ Convert DD-MM-YYYY → YYYY-MM-DD for the API
+  const toISO = str => { const p = str.split('-'); return `${p[2]}-${p[1]}-${p[0]}`; };
+
+  try{
+    const res = await api.post('leaves', {
+      employee_id:   empId,
+      leave_type_id: typeId,
+      from_date:     toISO(from),   // ✅ "2025-06-15"
+      to_date:       toISO(to),     // ✅ "2025-06-20"
+      reason,
+    });
+    const d = await res.json();
+    if(d.success){ showAlert('s',`✅ Leave application submitted — ${d.days} day(s).`); resetApply(); loadAll(); }
+    else showInline('applyAlert','❌ '+(d.error||'Failed.'));
+  }catch{ showInline('applyAlert','❌ Server error.'); }
+}
+function resetApply(){['a-emp','a-type','a-reason'].forEach(id=>document.getElementById(id).value='');['a-from','a-to'].forEach(id=>{if(document.getElementById(id)._flatpickr)document.getElementById(id)._flatpickr.clear();});document.getElementById('a-days').textContent='—';document.getElementById('balanceSection').style.display='none';document.getElementById('applyAlert').style.display='none';}
+
+// ACTION (approve/reject)
+function openAction(id){document.getElementById('ac-id').value=id;document.getElementById('ac-status').value='Approved';document.getElementById('ac-remarks').value='';document.getElementById('actionAlert').style.display='none';document.getElementById('actionModal').classList.add('open');}
+function closeAction(){document.getElementById('actionModal').classList.remove('open');}
+async function submitAction(){
+  const id=document.getElementById('ac-id').value,status=document.getElementById('ac-status').value,remarks=document.getElementById('ac-remarks').value;
+  try{
+    const res=await api.patch(`leaves/${id}/status`,{status,remarks});
+    const d=await res.json();
+    if(d.success){closeAction();showAlert('s','✅ Status updated to '+status);loadAll();}
+    else showInline('actionAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('actionAlert','❌ Server error.');}
+}
+
+// LEAVE TYPES
+function editType(id){const t=leaveTypes.find(x=>x.id==id);if(!t)return;document.getElementById('lt-id').value=t.id;document.getElementById('lt-name').value=t.name;document.getElementById('lt-days').value=t.days_allowed;document.getElementById('lt-cf').value=t.carry_forward;document.getElementById('lt-desc').value=t.description||'';}
+function resetType(){['lt-id','lt-name','lt-days','lt-desc'].forEach(id=>document.getElementById(id).value='');document.getElementById('lt-cf').value='0';}
+async function saveType(){
+  const id=document.getElementById('lt-id').value;
+  const name=document.getElementById('lt-name').value.trim();
+  if(!name){showInline('typeAlert','Name is required.');return;}
+  try{
+    const res = await (id
+  ? api.put(`leave-types/${id}`, {
+      name,
+      days_allowed:  parseInt(document.getElementById('lt-days').value) || 0,
+      carry_forward: parseInt(document.getElementById('lt-cf').value),
+      description:   document.getElementById('lt-desc').value,
+    })
+  : api.post('leave-types', {
+      name,
+      days_allowed:  parseInt(document.getElementById('lt-days').value) || 0,
+      carry_forward: parseInt(document.getElementById('lt-cf').value),
+      description:   document.getElementById('lt-desc').value,
+    })
+);
+    if(d.success){showAlert('s','✅ Leave type saved.');resetType();await loadTypes();}
+    else showInline('typeAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('typeAlert','❌ Server error.');}
+}
+
+function showTab(name){
+  ['all','pending','apply','types'].forEach(t=>{document.getElementById('panel-'+t).style.display=t===name?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===name);});
+  document.querySelectorAll('.sidebar .nav-item').forEach(a=>a.classList.remove('active'));
+}
+
+function showAlert(t,m){const b=document.getElementById('alertBox');b.className='alert '+(t==='s'?'al-s':'al-e');b.textContent=m;b.style.display='block';if(t==='s')setTimeout(()=>b.style.display='none',4000);}
+function showInline(id,m){const b=document.getElementById(id);b.className='alert al-e';b.textContent=m;b.style.display='block';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+document.getElementById('actionModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAction();});
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
+.tl{display:flex;align-items:center;gap:12px;}
+.logo{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.topbar h1{font-size:16px;color:#fff;}
+.topbar small{font-size:10px;color:var(--muted);display:block;}
+.tr{display:flex;align-items:center;gap:10px;}
+.btn{padding:8px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn:hover{opacity:.85;}
+.user-chip{background:var(--inp);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:8px;}
+.user-dot{width:8px;height:8px;border-radius:50%;background:var(--success);}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px);}
+/* SIDEBAR */
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:18px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-sect{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 14px 6px;margin-top:14px;}
+.sb-sect:first-child{margin-top:0;}
+.nav-item{padding:9px 14px;display:flex;align-items:center;gap:9px;font-size:12px;cursor:pointer;border-left:3px solid transparent;transition:.12s;text-decoration:none;color:var(--text);}
+.nav-item:hover{background:rgba(179,27,27,.07);color:#fff;}
+.nav-item.active{background:rgba(179,27,27,.12);color:#fff;border-left-color:var(--primary);font-weight:700;}
+.nav-item i{width:16px;color:var(--muted);font-size:12px;}
+.nav-item.active i{color:var(--primary);}
+.nb{background:var(--primary);color:#fff;padding:1px 6px;border-radius:20px;font-size:10px;margin-left:auto;}
+/* MAIN */
+.main{padding:22px 26px;}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.ph h2{font-size:20px;color:#fff;margin-bottom:3px;font-weight:800;}
+.ph p{font-size:12px;color:var(--muted);}
+/* STATS 6-grid */
+.stats6{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;transition:.2s;}
+.stat:hover{border-color:var(--primary);transform:translateY(-2px);}
+.stat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:10px;}
+.si1{background:rgba(25,118,210,.15);color:#64b5f6;}
+.si2{background:rgba(67,160,71,.15);color:#81c784;}
+.si3{background:rgba(255,167,38,.15);color:var(--warning);}
+.si4{background:rgba(179,27,27,.15);color:#ef9a9a;}
+.si5{background:rgba(156,39,176,.15);color:#ce93d8;}
+.si6{background:rgba(0,150,136,.15);color:#4db6ac;}
+.stat-num{font-size:28px;font-weight:800;color:#fff;line-height:1;}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:4px;}
+/* CHARTS */
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.cc-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.cc-hd h4{font-size:13px;color:#fff;font-weight:700;}
+.cc-hd span{font-size:11px;color:var(--muted);}
+.chart-wrap{position:relative;height:200px;}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:9px 12px;background:var(--inp);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid #0d2035;color:var(--text);}
+tr:hover td{background:rgba(179,27,27,.03);}
+.emp-init{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-right:7px;}
+.emp-img{width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:7px;}
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-active{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.b-leave{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.b-susp{background:rgba(229,57,53,.2);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.b-ret{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+/* QA */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.qa{background:var(--inp);border:1px solid var(--border);border-radius:6px;padding:13px;cursor:pointer;transition:.2s;text-decoration:none;color:var(--text);display:block;}
+.qa:hover{border-color:var(--primary);}
+.qa i{font-size:17px;color:var(--primary);margin-bottom:7px;display:block;}
+.qa h5{font-size:12px;color:#fff;margin-bottom:2px;}
+.qa p{font-size:10px;color:var(--muted);}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl">
+    <div class="logo"><i class="fas fa-shield-alt"></i></div>
+    <div><h1>Rescue 1122 &nbsp;<span style="font-weight:400;color:var(--muted);font-size:13px">HRM</span></h1><small id="dateTime"></small></div>
+  </div>
+  <div class="tr">
+  <div class="user-chip"><div class="user-dot"></div><span id="userName">Admin</span></div>
+  <a href="#" class="btn btn-back" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-sect">Main</div>
+    <a href="admin.html" class="nav-item active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-users"></i> Employees <span class="nb" id="nb-total">—</span></a>
+
+    <div class="sb-sect">HR Operations</div>
+    <a href="add_employee_1122.html" class="nav-item"><i class="fas fa-user-plus"></i> Add Employee</a>
+    <a href="attendance.html" class="nav-item"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="payroll.html" class="nav-item"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+<a href="bulk_import.html" class="nav-item"><i class="fas fa-file-import"></i> Bulk Import</a>
+    <a href="transfer_history.html" class="nav-item"><i class="fas fa-exchange-alt"></i> Transfers & Postings</a>
+    <a href="leave_management.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Leave Management</a>
+    <a href="employee_list.html?status=On+Leave" class="nav-item"><i class="fas fa-plane-departure"></i> On Leave</a>
+    <a href="employee_list.html?status=Suspended" class="nav-item"><i class="fas fa-ban"></i> Suspended</a>
+
+    <div class="sb-sect">Administration</div>
+    <a href="field_manager.html" class="nav-item"><i class="fas fa-sliders-h"></i> Field Manager</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-file-export"></i> Export Data</a>
+      </div>
+
+  <div class="main">
+    <div class="ph">
+      <div><h2>Dashboard Overview</h2><p>Real-time summary of your workforce</p></div>
+      <a href="add_employee_1122.html" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Employee</a>
+    </div>
+
+    <div class="stats6" id="statsRow">
+      <div class="stat"><div class="stat-icon si1"><i class="fas fa-users"></i></div><div class="stat-num" id="st-total">—</div><div class="stat-lbl">Total Employees</div></div>
+      <div class="stat"><div class="stat-icon si2"><i class="fas fa-user-check"></i></div><div class="stat-num" id="st-active">—</div><div class="stat-lbl">Active</div></div>
+      <div class="stat"><div class="stat-icon si3"><i class="fas fa-plane-departure"></i></div><div class="stat-num" id="st-leave">—</div><div class="stat-lbl">On Leave</div></div>
+      <div class="stat"><div class="stat-icon si5"><i class="fas fa-map-marker-alt"></i></div><div class="stat-num" id="st-stations">—</div><div class="stat-lbl">Stations</div></div>
+      <div class="stat"><div class="stat-icon si4"><i class="fas fa-exclamation-circle"></i></div><div class="stat-num" id="st-adverse">—</div><div class="stat-lbl">Disciplinary Findings</div></div>
+      <div class="stat"><div class="stat-icon si6"><i class="fas fa-calendar-plus"></i></div><div class="stat-num" id="st-month">—</div><div class="stat-lbl">Added This Month</div></div>
+    </div>
+
+    <div class="g3">
+      <div class="cc">
+        <div class="cc-hd"><h4><i class="fas fa-chart-line" style="color:var(--primary);margin-right:6px"></i>Monthly Joinings</h4><span>Last 12 months</span></div>
+        <div class="chart-wrap"><canvas id="monthlyChart"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cc-hd"><h4><i class="fas fa-chart-pie" style="color:var(--primary);margin-right:6px"></i>Status Distribution</h4></div>
+        <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="cc">
+        <div class="cc-hd"><h4><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:6px"></i>Employees by Station</h4></div>
+        <div class="chart-wrap"><canvas id="stationChart"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cc-hd"><h4><i class="fas fa-bolt" style="color:var(--primary);margin-right:6px"></i>Quick Actions</h4></div>
+        <div class="qa-grid">
+          <a href="add_employee_1122.html" class="qa"><i class="fas fa-user-plus"></i><h5>Add Employee</h5><p>Register new staff member</p></a>
+          <a href="bulk_import.html" class="qa"><i class="fas fa-file-import"></i><h5>Bulk Import</h5><p>CSV / Excel mass upload</p></a>
+          <a href="leave_management.html" class="qa"><i class="fas fa-calendar-alt"></i><h5>Leave Management</h5><p>Apply and approve leave</p></a>
+          <a href="transfer_history.html" class="qa"><i class="fas fa-exchange-alt"></i><h5>Transfers</h5><p>Record transfers & postings</p></a>
+          <a href="field_manager.html" class="qa"><i class="fas fa-sliders-h"></i><h5>Field Manager</h5><p>Manage all dropdowns</p></a>
+          <a href="employee_list.html" class="qa"><i class="fas fa-file-export"></i><h5>Export Reports</h5><p>Excel, PDF or Print</p></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc">
+      <div class="cc-hd"><h4><i class="fas fa-clock" style="color:var(--primary);margin-right:6px"></i>Recently Added</h4><a href="employee_list.html" style="font-size:11px;color:var(--info);text-decoration:none">View All →</a></div>
+      <table>
+        <thead><tr><th>Employee</th><th>Designation</th><th>Station</th><th>Status</th><th>Joining</th><th></th></tr></thead>
+        <tbody id="recentTbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)"><i class="fas fa-spinner fa-spin"></i></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// BASE + Auth from config.js
+Auth.requireAuth(); // redirect to login if no token
+
+// Show logged-in user name
+const _user = Auth.getUser();
+if (_user) document.getElementById('userName') && (document.getElementById('userName').textContent = _user.full_name || 'Admin');
+
+async function logout() {
+  try { await api.post('logout'); } catch {}
+  Auth.clearToken();
+  window.location.href = 'index.html';
+}
+
+let mChart,sChart,stChart;
+function clock(){const n=new Date();document.getElementById('dateTime').textContent=n.toLocaleDateString('en-PK',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' · '+n.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'});}
+clock();setInterval(clock,1000);
+
+function badge(s){const m={Active:'b-active','On Leave':'b-leave',Suspended:'b-susp',Retired:'b-ret'};return`<span class="badge ${m[s]||'b-ret'}">${s||'—'}</span>`;}
+
+async function loadStats(){
+  try{
+    const res=await api.get('stats');
+    const data=await res.json();
+    if(!data.success)return;
+    const c=data.counts;
+    document.getElementById('st-total').textContent=c.total;
+    document.getElementById('st-active').textContent=c.active;
+    document.getElementById('st-leave').textContent=c.onLeave;
+    document.getElementById('st-stations').textContent=c.stations;
+    document.getElementById('st-adverse').textContent=c.adverse;
+    document.getElementById('st-month').textContent=c.thisMonth;
+    document.getElementById('nb-total').textContent=c.total;
+    drawMonthly(data.monthly);drawStatus(data.byStatus);drawStation(data.byStation);drawRecent(data.recent);
+  }catch(e){
+    document.getElementById('recentTbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#ef9a9a">⚠ Cannot reach server. Make sure Laravel API is running (php artisan serve).</td></tr>';
+  }
+}
+
+const cd=()=>({plugins:{legend:{labels:{color:'#6b8fa8',font:{family:'Nunito Sans'}}}},scales:{x:{ticks:{color:'#6b8fa8',font:{family:'Nunito Sans',size:10}},grid:{color:'rgba(30,58,95,.4)'}},y:{ticks:{color:'#6b8fa8',font:{family:'Nunito Sans',size:10}},grid:{color:'rgba(30,58,95,.4)'}}},responsive:true,maintainAspectRatio:false});
+
+function drawMonthly(data){if(mChart)mChart.destroy();mChart=new Chart(document.getElementById('monthlyChart'),{type:'line',data:{labels:data.map(r=>r.ym),datasets:[{label:'Joinings',data:data.map(r=>r.cnt),borderColor:'#b31b1b',backgroundColor:'rgba(179,27,27,.12)',borderWidth:2,fill:true,tension:.4,pointBackgroundColor:'#b31b1b',pointRadius:4}]},options:{...cd(),plugins:{legend:{display:false}}}});}
+
+function drawStatus(data){const colors={Active:'#43a047','On Leave':'#ffa726',Suspended:'#e53935',Terminated:'#6b8fa8',Retired:'#90caf9'};if(sChart)sChart.destroy();sChart=new Chart(document.getElementById('statusChart'),{type:'doughnut',data:{labels:data.map(r=>r.emp_status),datasets:[{data:data.map(r=>r.cnt),backgroundColor:data.map(r=>colors[r.emp_status]||'#ccc'),borderColor:'#0c1e2e',borderWidth:3,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b8fa8',font:{family:'Nunito Sans',size:11},padding:10}}}}});}
+
+function drawStation(data){if(stChart)stChart.destroy();stChart=new Chart(document.getElementById('stationChart'),{type:'bar',data:{labels:data.map(r=>r.station),datasets:[{label:'Employees',data:data.map(r=>r.cnt),backgroundColor:'rgba(179,27,27,.7)',borderColor:'#b31b1b',borderWidth:1,borderRadius:4}]},options:{...cd(),plugins:{legend:{display:false}},indexAxis:'y'}});}
+
+function drawRecent(emps){
+  if(!emps.length){document.getElementById('recentTbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No employees yet</td></tr>';return;}
+  document.getElementById('recentTbody').innerHTML=emps.map(e=>`
+    <tr>
+      <td>${e.photo?`<img class="emp-img" src="${PHOTO_BASE}${e.photo}" alt="" onerror="this.style.display='none'">`:`<span class="emp-init">${(e.full_name||'?')[0]}</span>`}<strong style="color:#fff">${e.full_name}</strong><br><small style="color:var(--muted)">${e.emp_code||''}</small></td>
+      <td>${e.designation||'—'}</td><td>${e.station||'—'}</td>
+      <td>${badge(e.emp_status)}</td><td>${e.joining_date||'—'}</td>
+      <td><a href="view_employee.html?id=${e.id}" class="btn btn-back" style="padding:4px 10px;font-size:10px"><i class="fas fa-eye"></i></a></td>
+    </tr>`).join('');
+}
+loadStats();
+</script>
+</body>
+</html>

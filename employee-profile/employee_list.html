@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rescue 1122 — Employee List</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="config.js"></script>
+<style>
+/* ... your existing styles (same as before) ... */
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
+.tl{display:flex;align-items:center;gap:12px;}
+.logo{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.topbar h1{font-size:16px;color:#fff;}
+.topbar small{font-size:10px;color:var(--muted);display:block;}
+.tr{display:flex;align-items:center;gap:8px;}
+.btn{padding:8px 14px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-info{background:var(--info);color:#fff;}
+.btn-warning{background:var(--warning);color:#000;}
+.btn-danger{background:rgba(229,57,53,.15);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.btn:hover{opacity:.85;}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px);}
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-sect{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;padding:0 16px 8px;margin-top:16px;}
+.sb-sect:first-child{margin-top:0;}
+.nav-item{padding:9px 16px;display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;border-left:3px solid transparent;transition:.15s;text-decoration:none;color:var(--text);}
+.nav-item:hover{background:rgba(179,27,27,.07);color:#fff;}
+.nav-item.active{background:rgba(179,27,27,.12);color:#fff;border-left-color:var(--primary);font-weight:700;}
+.nav-item i{width:16px;color:var(--muted);font-size:13px;}
+.nav-item.active i{color:var(--primary);}
+.main{padding:22px 26px;}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:220px;}
+.search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;}
+.srch{width:100%;padding:9px 12px 9px 35px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--text);font-family:'Nunito Sans',sans-serif;}
+.srch:focus{outline:none;border-color:var(--primary);}
+.fc{padding:8px 12px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text);font-family:'Nunito Sans',sans-serif;}
+.fc:focus{outline:none;border-color:var(--primary);}
+select.fc option{background:#0a1624;}
+.export-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.export-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;}
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.table-hdr{background:var(--inp);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.table-hdr h4{font-size:13px;color:#fff;}
+.table-hdr span{font-size:11px;color:var(--muted);}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:10px 14px;background:#051020;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;text-align:left;white-space:nowrap;position:sticky;top:0;cursor:pointer;user-select:none;}
+th:hover{color:#fff;}
+td{padding:10px 14px;border-bottom:1px solid #0d2035;color:var(--text);white-space:nowrap;}
+tr:hover td{background:rgba(179,27,27,.04);}
+.emp-av{width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;background:var(--border);}
+.emp-init{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-right:8px;flex-shrink:0;}
+.badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-active{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.b-leave{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.b-suspended{background:rgba(229,57,53,.2);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.b-retired{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+.b-term{background:rgba(100,100,100,.2);color:#aaa;border:1px solid rgba(100,100,100,.3);}
+.act-btn{width:26px;height:26px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:11px;transition:.15s;text-decoration:none;}
+.act-btn:hover{border-color:var(--primary);color:#fff;}
+.act-btn.del:hover{border-color:#e53935;color:#ef9a9a;background:rgba(229,57,53,.1);}
+.pag{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-top:1px solid var(--border);}
+.pag-info{font-size:11px;color:var(--muted);}
+.pag-btns{display:flex;gap:5px;}
+.pb{width:30px;height:30px;border-radius:4px;border:1px solid var(--border);background:var(--inp);color:var(--text);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.pb:hover{border-color:var(--primary);color:#fff;}
+.pb.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.pb:disabled{opacity:.3;cursor:not-allowed;}
+.empty{text-align:center;padding:60px;color:var(--muted);}
+.empty i{font-size:40px;margin-bottom:14px;display:block;}
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:999;}
+.moverlay.open{display:flex;}
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:8px;width:360px;padding:30px;text-align:center;}
+.cbox i{font-size:44px;color:#e53935;margin-bottom:14px;display:block;}
+.cbox h3{font-size:16px;color:#fff;margin-bottom:8px;}
+.cbox p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+.cbtns{display:flex;gap:10px;justify-content:center;}
+.alert{padding:11px 16px;border-radius:5px;font-size:12px;margin-bottom:14px;display:none;}
+.al-s{background:rgba(67,160,71,.15);border:1px solid var(--success);color:#81c784;}
+.al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media print{
+  .topbar,.sidebar,.toolbar,.export-row,.pag,.act-btn,.no-print{display:none!important;}
+  .layout{grid-template-columns:1fr!important;}
+  .main{padding:0!important;}
+  body{background:#fff!important;color:#000!important;}
+  .table-card{border:none!important;}
+  table{font-size:11px!important;}
+  th{background:#b31b1b!important;color:#fff!important;-webkit-print-color-adjust:exact;}
+  td{border-bottom:1px solid #eee!important;color:#000!important;}
+  .badge{border:1px solid #999!important;color:#000!important;background:none!important;}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl"><div class="logo"><i class="fas fa-shield-alt"></i></div><div><h1>Rescue 1122 &nbsp;<span style="font-weight:400;color:var(--muted);font-size:13px">HRM</span></h1><small>Employee Management</small></div></div>
+  <div class="tr"><a href="add_employee_1122.html" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Employee</a><a href="#" class="btn btn-back" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-sect">Main</div>
+    <a href="admin.html" class="nav-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="employee_list.html" class="nav-item active"><i class="fas fa-users"></i> Employees</a>
+    <div class="sb-sect">HR Operations</div>
+    <a href="add_employee_1122.html" class="nav-item"><i class="fas fa-user-plus"></i> Add Employee</a>
+    <a href="attendance.html" class="nav-item"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="payroll.html" class="nav-item"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+    <a href="bulk_import.html" class="nav-item"><i class="fas fa-file-import"></i> Bulk Import</a>
+    <a href="employee_list.html?status=On+Leave" class="nav-item"><i class="fas fa-plane-departure"></i> On Leave</a>
+    <a href="employee_list.html?status=Suspended" class="nav-item"><i class="fas fa-ban"></i> Suspended</a>
+    <div class="sb-sect">Administration</div>
+    <a href="field_manager.html" class="nav-item"><i class="fas fa-sliders-h"></i> Field Manager</a>
+  </div>
+  <div class="main">
+    <div id="alertBox" class="alert"></div>
+    <div class="toolbar">
+      <div class="search-wrap"><i class="fas fa-search"></i><input type="text" class="srch" id="srch" placeholder="Search name, CNIC, phone, emp code..." oninput="debSearch()" value=""></div>
+      <select class="fc" id="fStation" onchange="load()"><option value="">All Stations</option></select>
+      <select class="fc" id="fStatus" onchange="load()"><option value="">All Statuses</option><option>Active</option><option>On Leave</option><option>Suspended</option><option>Terminated</option><option>Retired</option></select>
+      <select class="fc" id="fDesig" onchange="load()"><option value="">All Designations</option></select>
+      <select class="fc" id="fCat" onchange="load()"><option value="">All Categories</option></select>
+      <select class="fc" id="fLimit" onchange="load()"><option value="25">25 / page</option><option value="50">50 / page</option><option value="100">100 / page</option></select>
+    </div>
+    <div class="export-row no-print">
+      <span class="export-label"><i class="fas fa-download"></i> Export:</span>
+      <button class="btn btn-success" onclick="openExport('excel')"><i class="fas fa-file-excel"></i> Excel</button>
+      <button class="btn btn-primary" onclick="openExport('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+      <button class="btn btn-info" onclick="printTable()"><i class="fas fa-print"></i> Print</button>
+      <button class="btn btn-back" onclick="openExport('csv')"><i class="fas fa-file-csv"></i> CSV</button>
+    </div>
+    <div class="table-card">
+      <div class="table-hdr"><h4><i class="fas fa-users" style="color:var(--primary);margin-right:6px"></i>Employee Records</h4><span id="resultInfo">Loading...</span></div>
+      <div class="tbl-wrap" id="tblWrap"><table id="empTable"><thead><tr><th onclick="sortBy('full_name')"># Name <i class="fas fa-sort" style="font-size:9px"></i></th><th>CNIC</th><th onclick="sortBy('designation')">Designation <i class="fas fa-sort" style="font-size:9px"></i></th><th onclick="sortBy('station')">Station <i class="fas fa-sort" style="font-size:9px"></i></th><th>Pay Scale</th><th onclick="sortBy('joining_date')">Joining <i class="fas fa-sort" style="font-size:9px"></i></th><th onclick="sortBy('emp_status')">Status <i class="fas fa-sort" style="font-size:9px"></i></th><th>Phone</th><th class="no-print">Actions</th></tr></thead><tbody id="empTbody"><tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr></tbody></table></div>
+      <div class="pag" id="pagRow"><div class="pag-info" id="pagInfo"></div><div class="pag-btns" id="pagBtns"></div></div>
+    </div>
+  </div>
+</div>
+<div class="moverlay" id="delModal"><div class="cbox"><i class="fas fa-trash-alt"></i><h3>Remove Employee?</h3><p id="delMsg"></p><div class="cbtns"><button class="btn btn-back" onclick="closeDel()">Cancel</button><button class="btn btn-danger" onclick="confirmDel()"><i class="fas fa-trash"></i> Yes, Remove</button></div><input type="hidden" id="delId"></div></div>
+<div class="moverlay" id="exportModal"><div style="background:var(--card);border:1px solid var(--border);border-radius:10px;width:620px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);"><div style="background:var(--inp);padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;border-radius:10px 10px 0 0;"><div><h3 style="font-size:15px;color:#fff;margin-bottom:3px" id="exportModalTitle"><i class="fas fa-file-excel" style="color:var(--success);margin-right:8px"></i>Export Options</h3><p style="font-size:11px;color:var(--muted)">Choose which fields to include in your export</p></div><button onclick="closeExport()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1">&times;</button></div><div style="padding:20px 22px;"><div style="margin-bottom:18px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px"><i class="fas fa-database" style="margin-right:5px"></i>Data Scope</div><div style="display:flex;gap:10px;"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--inp);border:1px solid var(--border);border-radius:6px;padding:10px 14px;flex:1;transition:.15s;" id="scope-current-wrap"><input type="radio" name="exportScope" id="scope-current" value="current" checked style="accent-color:var(--primary)"><div><div style="font-size:12px;color:#fff;font-weight:600">Current view</div><div style="font-size:10px;color:var(--muted)">Respects your current search & filters</div></div></label><label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--inp);border:1px solid var(--border);border-radius:6px;padding:10px 14px;flex:1;transition:.15s;" id="scope-all-wrap"><input type="radio" name="exportScope" id="scope-all" value="all" style="accent-color:var(--primary)"><div><div style="font-size:12px;color:#fff;font-weight:600">All employees</div><div style="font-size:10px;color:var(--muted)">Export complete database</div></div></label></div></div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px"><i class="fas fa-columns" style="margin-right:5px"></i>Select Fields&nbsp;<button onclick="toggleAllFields(true)" style="background:rgba(179,27,27,.2);border:1px solid rgba(179,27,27,.3);color:#ffb3b3;padding:2px 10px;border-radius:4px;font-size:10px;cursor:pointer;margin-left:4px">Select All</button><button onclick="toggleAllFields(false)" style="background:var(--inp);border:1px solid var(--border);color:var(--muted);padding:2px 10px;border-radius:4px;font-size:10px;cursor:pointer;margin-left:4px">Clear All</button></div><div id="fieldGroups"></div><div style="font-size:11px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><span id="fieldCount" style="color:var(--primary);font-weight:700"></span> fields selected</div></div><div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;border-radius:0 0 10px 10px;"><button class="btn btn-back" onclick="closeExport()">Cancel</button><button class="btn" id="doExportBtn" onclick="doExport()" style="background:var(--success);color:#fff;min-width:140px"><i class="fas fa-download"></i> <span id="doExportLabel">Export Excel</span></button></div></div></div>
+
+<script>
+// ============================================================
+//  FIXED employee_list.html – uses correct /me endpoint
+// ============================================================
+
+Auth.requireAuth();
+
+function showError(msg, details = null) {
+    console.error(msg, details);
+    const b = document.getElementById('alertBox');
+    b.className = 'alert al-e';
+    b.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${msg}`;
+    b.style.display = 'block';
+    setTimeout(() => b.style.display = 'none', 8000);
+}
+
+async function logout() {
+    try { await api.post('logout'); } catch(e) { console.warn(e); }
+    Auth.clearToken();
+    window.location.href = 'index.html';
+}
+
+let curPage = 1, sortCol = 'created_at', sortDir = 'DESC';
+let allData = [];
+let searchTimer;
+
+async function init() {
+    // Verify token by calling /me (correct endpoint from api.php)
+    try {
+        console.log("Checking authentication with /api/me...");
+        const testRes = await api.get('me');
+        if (!testRes.ok) {
+            const errText = await testRes.text();
+            console.error("Auth check failed:", testRes.status, errText);
+            showError("Authentication failed. Please log in again. Redirecting...");
+            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+            return;
+        }
+        const userData = await testRes.json();
+        console.log("Authenticated as:", userData);
+    } catch(e) {
+        console.error("Auth check exception:", e);
+        showError("Cannot connect to API. Is the backend running?");
+        return;
+    }
+
+    // Populate filter dropdowns
+    try {
+        const res = await api.get('fields');
+        const data = await res.json();
+        const f = data.fields || {};
+        fill('fStation', f.station || []);
+        fill('fDesig', f.designation || []);
+        fill('fCat', f.category || []);
+    } catch(e) {
+        console.warn("Could not load filter fields:", e);
+    }
+    const p = new URLSearchParams(location.search);
+    if (p.get('status')) document.getElementById('fStatus').value = p.get('status');
+    await load();
+}
+
+function fill(id, arr) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    arr.forEach(v => {
+        const o = document.createElement('option');
+        o.value = v;
+        o.textContent = v;
+        el.appendChild(o);
+    });
+}
+
+async function load(page) {
+    if (page) curPage = page;
+    const params = {
+        q: document.getElementById('srch').value.trim(),
+        station: document.getElementById('fStation').value,
+        emp_status: document.getElementById('fStatus').value,
+        designation: document.getElementById('fDesig').value,
+        category: document.getElementById('fCat').value,
+        limit: document.getElementById('fLimit').value,
+        page: curPage,
+        sort: sortCol,
+        dir: sortDir,
+    };
+    document.getElementById('empTbody').innerHTML = '<tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+    try {
+        const res = await api.get('employees', params);
+        const data = await res.json();
+        if (!data.success) {
+            showError("API error: " + (data.error || "Unknown error"));
+            document.getElementById('empTbody').innerHTML = `<tr><td colspan="9" class="empty"><i class="fas fa-exclamation-triangle"></i><br>${escapeHtml(data.error || 'Failed to load employees')}</td></tr>`;
+            return;
+        }
+        allData = data.employees || [];
+        render(data);
+    } catch (err) {
+        console.error("Fetch error:", err);
+        showError("Cannot reach server. Make sure Laravel API is running on http://127.0.0.1:8000");
+        document.getElementById('empTbody').innerHTML = '<tr><td colspan="9" class="empty"><i class="fas fa-plug"></i><br>Cannot connect to API. Check console.</td></tr>';
+    }
+}
+
+function debSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { curPage = 1; load(); }, 400);
+}
+
+function sortBy(col) {
+    if (sortCol === col) sortDir = sortDir === 'ASC' ? 'DESC' : 'ASC';
+    else { sortCol = col; sortDir = 'ASC'; }
+    load();
+}
+
+function render(data) {
+    const emps = data.employees || [];
+    const total = data.total || 0;
+    const limit = data.limit || 25;
+    const pages = data.pages || 1;
+    document.getElementById('resultInfo').textContent = `${total} employee${total !== 1 ? 's' : ''} found`;
+    if (!emps.length) {
+        document.getElementById('empTbody').innerHTML = '<tr><td colspan="9" class="empty"><i class="fas fa-inbox"></i><br>No employees found.</td></tr>';
+        document.getElementById('pagInfo').textContent = '';
+        document.getElementById('pagBtns').innerHTML = '';
+        return;
+    }
+    document.getElementById('empTbody').innerHTML = emps.map((e, i) => `
+        <tr>
+            <td>
+                ${e.photo ? `<img class="emp-av" src="${PHOTO_BASE}${e.photo}" alt="" onerror="this.style.display='none'">` : `<span class="emp-init">${(e.full_name||'?')[0]}</span>`}
+                <strong style="color:#fff">${escapeHtml(e.full_name)}</strong>
+                ${e.disciplinary_count > 0 ? `<i class="fas fa-exclamation-circle" style="color:#ffa726;margin-left:5px;font-size:10px" title="${e.disciplinary_count} disciplinary findings"></i>` : ''}
+                <br><small style="color:var(--muted)">${e.emp_code||''}</small>
+            </td>
+            <td>${e.cnic||'—'}</td>
+            <td>${e.designation||'—'}</td>
+            <td>${e.station||'—'}</td>
+            <td>${e.pay_scale||'—'}</td>
+            <td>${e.joining_date||'—'}</td>
+            <td>${badge(e.emp_status)}</td>
+            <td>${e.phone||'—'}</td>
+            <td class="no-print">
+                <a href="view_employee.html?id=${e.id}" class="act-btn" title="View Profile"><i class="fas fa-eye"></i></a>
+                <a href="edit_employee.html?id=${e.id}" class="act-btn" title="Edit"><i class="fas fa-pencil-alt"></i></a>
+                <button class="act-btn del" title="Remove" onclick="openDel(${e.id},'${escapeQuotes(e.full_name)}')"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+    const from = (curPage - 1) * limit + 1;
+    const to = Math.min(curPage * limit, total);
+    document.getElementById('pagInfo').textContent = `Showing ${from}–${to} of ${total}`;
+    let pHtml = `<button class="pb" onclick="load(${curPage-1})" ${curPage<=1?'disabled':''}>‹</button>`;
+    const range = [...new Set([1, curPage-1, curPage, curPage+1, pages].filter(n => n>=1 && n<=pages))].sort((a,b)=>a-b);
+    let prev = 0;
+    range.forEach(n => {
+        if (n - prev > 1) pHtml += `<span class="pb" style="border:none;cursor:default">…</span>`;
+        pHtml += `<button class="pb ${n===curPage?'active':''}" onclick="load(${n})">${n}</button>`;
+        prev = n;
+    });
+    pHtml += `<button class="pb" onclick="load(${curPage+1})" ${curPage>=pages?'disabled':''}>›</button>`;
+    document.getElementById('pagBtns').innerHTML = pHtml;
+}
+
+function badge(s) {
+    const m = {Active:'b-active','On Leave':'b-leave',Suspended:'b-suspended',Retired:'b-retired',Terminated:'b-term'};
+    return `<span class="badge ${m[s]||'b-retired'}">${s||'—'}</span>`;
+}
+
+function openDel(id, name) {
+    document.getElementById('delId').value = id;
+    document.getElementById('delMsg').textContent = `Remove "${name}" from the system? This action can be undone from the database.`;
+    document.getElementById('delModal').classList.add('open');
+}
+function closeDel() { document.getElementById('delModal').classList.remove('open'); }
+async function confirmDel() {
+    const id = document.getElementById('delId').value;
+    try {
+        const res = await api.delete(`employees/${id}`);
+        const data = await res.json();
+        if (data.success) { closeDel(); showAlert('s','✅ Employee removed.'); load(); }
+        else showAlert('e','❌ ' + data.error);
+    } catch { showAlert('e','❌ Server error.'); }
+}
+document.getElementById('delModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDel(); });
+
+// ---------- EXPORT (same as before, works) ----------
+async function getAll() {
+    const params = {
+        q: document.getElementById('srch').value.trim(),
+        station: document.getElementById('fStation').value,
+        emp_status: document.getElementById('fStatus').value,
+        designation:document.getElementById('fDesig').value,
+        category: document.getElementById('fCat').value,
+        limit: 9999, page: 1, sort: sortCol, dir: sortDir,
+    };
+    const res = await api.get('employees', params);
+    const data = await res.json();
+    return data.employees || [];
+}
+
+const EXPORT_FIELDS = [
+    { group:'🪪 Identity', fields:[ { key:'emp_code', label:'Employee Code', def:true },{ key:'full_name', label:'Full Name', def:true },{ key:'father_name', label:'Father\'s Name', def:false },{ key:'cnic', label:'CNIC', def:true },{ key:'dob', label:'Date of Birth', def:false },{ key:'gender', label:'Gender', def:true },{ key:'blood_group', label:'Blood Group', def:false } ] },
+    { group:'💼 Employment', fields:[ { key:'designation', label:'Designation', def:true },{ key:'category', label:'Category', def:true },{ key:'emp_status', label:'Status', def:true },{ key:'station', label:'Station', def:true },{ key:'pay_scale', label:'Pay Scale / BPS', def:true },{ key:'pay', label:'Monthly Pay (PKR)', def:false },{ key:'batch_no', label:'Batch No.', def:false },{ key:'joining_date', label:'Joining Date', def:true },{ key:'reporting_officer', label:'Reporting Officer', def:false } ] },
+    { group:'📞 Contact', fields:[ { key:'phone', label:'Phone Number', def:true },{ key:'email', label:'Email Address', def:false },{ key:'temp_address', label:'Temporary Address', def:false },{ key:'perm_address', label:'Permanent Address', def:false },{ key:'emg_name', label:'Emergency Contact', def:false },{ key:'emg_phone', label:'Emergency Phone', def:false } ] },
+    { group:'🎓 Education', fields:[ { key:'education', label:'Education Level', def:false },{ key:'field_study', label:'Field of Study', def:false },{ key:'training_done', label:'Training Done', def:false } ] },
+    { group:'📄 Documents', fields:[ { key:'police_verify', label:'Police Verification', def:false },{ key:'medical_cert', label:'Medical Certificate', def:false },{ key:'insurance', label:'Insurance', def:false },{ key:'offer_no', label:'Offer Letter No.', def:false },{ key:'appt_no', label:'Appointment Letter', def:false } ] },
+    { group:'📋 Contract', fields:[ { key:'contract_tier', label:'Contract Tier', def:false },{ key:'contract_number', label:'Contract No.', def:false },{ key:'contract_date', label:'Contract Date', def:false },{ key:'contract_expiry_date', label:'Contract Expiry Date', def:false } ] },
+    { group:'👤 Personal', fields:[ { key:'marital_status', label:'Marital Status', def:false },{ key:'religion', label:'Religion', def:false },{ key:'mother_tongue', label:'Mother Tongue', def:false },{ key:'domicile', label:'Domicile', def:false },{ key:'languages', label:'Languages', def:false } ] }
+];
+
+let currentExportFormat = 'excel';
+function openExport(format) {
+    currentExportFormat = format;
+    const icons = { excel:'fa-file-excel', pdf:'fa-file-pdf', csv:'fa-file-csv' };
+    const colors = { excel:'var(--success)', pdf:'var(--primary)', csv:'#1976d2' };
+    const labels = { excel:'Export Excel', pdf:'Export PDF', csv:'Export CSV' };
+    const titles = { excel:'Excel Export Options', pdf:'PDF Export Options', csv:'CSV Export Options' };
+    document.getElementById('exportModalTitle').innerHTML = `<i class="fas ${icons[format]}" style="color:${colors[format]};margin-right:8px"></i>${titles[format]}`;
+    document.getElementById('doExportLabel').textContent = labels[format];
+    document.getElementById('doExportBtn').style.background = colors[format];
+    const container = document.getElementById('fieldGroups');
+    container.innerHTML = EXPORT_FIELDS.map(grp => `<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">${grp.group}<button onclick="toggleGroup('${grp.group}', true)" style="background:rgba(179,27,27,.15);border:1px solid rgba(179,27,27,.25);color:#ffb3b3;padding:1px 8px;border-radius:3px;font-size:9px;cursor:pointer;">All</button><button onclick="toggleGroup('${grp.group}', false)" style="background:var(--inp);border:1px solid var(--border);color:var(--muted);padding:1px 8px;border-radius:3px;font-size:9px;cursor:pointer;">None</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">${grp.fields.map(f => `<label data-group="${grp.group}" style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--inp);border:1px solid var(--border);border-radius:5px;padding:7px 10px;transition:.15s;font-size:12px;color:var(--text);" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor=document.getElementById('chk_${f.key}').checked?'var(--primary)':'var(--border)'"><input type="checkbox" id="chk_${f.key}" data-key="${f.key}" ${f.def ? 'checked' : ''} style="accent-color:var(--primary);cursor:pointer;" onchange="updateFieldCount();this.parentElement.style.borderColor=this.checked?'var(--primary)':'var(--border)'"><span>${f.label}</span></label>`).join('')}</div></div>`).join('');
+    setTimeout(() => { document.querySelectorAll('#fieldGroups input[type=checkbox]').forEach(cb => { if (cb.checked) cb.parentElement.style.borderColor = 'var(--primary)'; }); updateFieldCount(); }, 50);
+    document.getElementById('exportModal').classList.add('open');
+}
+function closeExport() { document.getElementById('exportModal').classList.remove('open'); }
+function toggleAllFields(state) { document.querySelectorAll('#fieldGroups input[type=checkbox]').forEach(cb => { cb.checked = state; cb.parentElement.style.borderColor = state ? 'var(--primary)' : 'var(--border)'; }); updateFieldCount(); }
+function toggleGroup(grp, state) { document.querySelectorAll(`#fieldGroups label[data-group="${grp}"] input`).forEach(cb => { cb.checked = state; cb.parentElement.style.borderColor = state ? 'var(--primary)' : 'var(--border)'; }); updateFieldCount(); }
+function updateFieldCount() { const n = document.querySelectorAll('#fieldGroups input[type=checkbox]:checked').length; document.getElementById('fieldCount').textContent = n; }
+function getSelectedFields() { const selected = []; document.querySelectorAll('#fieldGroups input[type=checkbox]:checked').forEach(cb => { const key = cb.dataset.key; for (const grp of EXPORT_FIELDS) { const f = grp.fields.find(x => x.key === key); if (f) { selected.push({ key: f.key, label: f.label }); break; } } }); return selected; }
+async function doExport() {
+    const selected = getSelectedFields();
+    if (!selected.length) { showAlert('e','⚠ Please select at least one field.'); return; }
+    const allScope = document.getElementById('scope-all').checked;
+    closeExport();
+    const params = new URLSearchParams({ q: allScope ? '' : document.getElementById('srch').value.trim(), station: allScope ? '' : document.getElementById('fStation').value, emp_status: allScope ? '' : document.getElementById('fStatus').value, designation: allScope ? '' : document.getElementById('fDesig').value, category: allScope ? '' : document.getElementById('fCat').value, limit: 9999, page: 1, sort: sortCol, dir: sortDir });
+    showAlert('s','⏳ Fetching data...');
+    const res = await api.get('employees', Object.fromEntries(params));
+    const data = await res.json();
+    const emps = data.employees || [];
+    if (!emps.length) { showAlert('e','No employees found to export.'); return; }
+    if (currentExportFormat === 'excel') doExcel(emps, selected);
+    else if (currentExportFormat === 'pdf') doPDF(emps, selected);
+    else doCSV(emps, selected);
+}
+function doExcel(emps, fields) { const headers = fields.map(f => f.label); const rows = emps.map(e => fields.map(f => { const v = e[f.key]; if (f.key === 'training_done') return v == 1 ? 'Yes' : 'No'; return v !== null && v !== undefined ? v : ''; })); const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]); ws['!cols'] = fields.map(() => ({ wch: 22 })); ws['!freeze'] = { xSplit: 0, ySplit: 1 }; XLSX.utils.book_append_sheet(wb, ws, 'Employees'); XLSX.writeFile(wb, `Rescue1122_Employees_${today()}.xlsx`); showAlert('s', `✅ Excel exported — ${emps.length} employees, ${fields.length} fields`); }
+function doPDF(emps, fields) { const { jsPDF } = window.jspdf; const landscape = fields.length > 6; const doc = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit:'mm', format:'a4' }); const pw = landscape ? 297 : 210; doc.setFillColor(179,27,27); doc.rect(0,0,pw,22,'F'); doc.setTextColor(255,255,255); doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.text('RESCUE 1122 — EMPLOYEE REGISTER', 14, 14); doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(`Generated: ${new Date().toLocaleString('en-PK')} | Total: ${emps.length} employees | Fields: ${fields.length}`, pw - 14, 14, { align:'right' }); doc.autoTable({ startY: 26, head: [['#', ...fields.map(f => f.label)]], body: emps.map((e, i) => [ i + 1, ...fields.map(f => { if (f.key === 'training_done') return e[f.key] == 1 ? 'Yes' : 'No'; return e[f.key] !== null && e[f.key] !== undefined ? String(e[f.key]) : '—'; }) ]), headStyles: { fillColor:[179,27,27], textColor:255, fontStyle:'bold', fontSize: fields.length > 8 ? 6 : 8 }, bodyStyles: { fontSize: fields.length > 8 ? 6 : 7, textColor:[20,40,80] }, alternateRowStyles: { fillColor:[245,248,252] }, styles: { cellPadding: fields.length > 8 ? 1.5 : 2.5, font:'helvetica', overflow:'linebreak' }, columnStyles: { 0: { cellWidth: 8 } }, margin: { left:10, right:10 }, didDrawPage: d => { doc.setFontSize(7); doc.setTextColor(150,150,150); doc.text(`Page ${d.pageNumber}`, pw - 14, landscape ? 205 : 290, { align:'right' }); doc.text('Rescue 1122 — Confidential HR Record', 14, landscape ? 205 : 290); } }); doc.save(`Rescue1122_Employees_${today()}.pdf`); showAlert('s', `✅ PDF exported — ${emps.length} employees, ${fields.length} fields`); }
+function doCSV(emps, fields) { const head = fields.map(f => `"${f.label}"`).join(','); const rows = emps.map(e => fields.map(f => { const v = f.key === 'training_done' ? (e[f.key] == 1 ? 'Yes' : 'No') : (e[f.key] || ''); return `"${String(v).replace(/"/g,'""')}"`; }).join(',')); const csv = [head, ...rows].join('\n'); const blob = new Blob(['\uFEFF' + csv], { type:'text/csv;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Rescue1122_Employees_${today()}.csv`; a.click(); showAlert('s', `✅ CSV exported — ${emps.length} employees, ${fields.length} fields`); }
+function printTable() { window.print(); }
+document.getElementById('exportModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeExport(); });
+function today() { return new Date().toISOString().slice(0,10); }
+function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeQuotes(s) { return String(s||'').replace(/'/g,"\\'"); }
+function showAlert(t, m) { const b = document.getElementById('alertBox'); b.className = 'alert ' + (t==='s'?'al-s':'al-e'); b.textContent = m; b.style.display = 'block'; if (t==='s') setTimeout(() => b.style.display='none', 4000); }
+
+init();
+</script>
+</body>
+</html>

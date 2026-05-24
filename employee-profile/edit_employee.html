@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Edit Employee</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:13px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);}
+.tl{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;}
+.topbar h1{font-size:16px;color:#fff;}
+.topbar small{font-size:10px;color:var(--muted);display:block;}
+.tr{display:flex;gap:8px;}
+.btn{padding:8px 16px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn:hover{opacity:.85;}
+.container{max-width:920px;margin:0 auto;padding:22px 18px;}
+/* SECTION CARDS */
+.sec{background:var(--card);border-radius:8px;border:1px solid var(--border);margin-bottom:18px;overflow:hidden;}
+.sec-hd{background:var(--inp);padding:13px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.sec-hd i{color:var(--primary);font-size:15px;}
+.sec-hd h3{font-size:14px;color:#fff;}
+.sec-body{padding:22px;}
+/* PHOTO SECTION */
+.photo-wrap{display:flex;align-items:flex-start;gap:22px;padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--border);}
+.photo-circle{width:100px;height:100px;border-radius:50%;border:3px solid var(--border);background:var(--inp);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:.2s;overflow:hidden;position:relative;}
+.photo-circle:hover{border-color:var(--primary);}
+.photo-circle img{width:100%;height:100%;object-fit:cover;}
+.photo-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(179,27,27,.75);display:none;align-items:center;justify-content:center;color:#fff;font-size:18px;}
+.photo-circle:hover .photo-overlay{display:flex;}
+.photo-info h4{color:#fff;font-size:13px;margin-bottom:5px;}
+.photo-info p{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.7;}
+.btn-photo{padding:7px 14px;background:var(--inp);border:1px dashed var(--border);border-radius:5px;color:var(--text);cursor:pointer;font-size:12px;transition:.2s;font-family:'Nunito Sans',sans-serif;}
+.btn-photo:hover{border-color:var(--primary);color:#fff;}
+.photo-name{font-size:11px;color:var(--success);margin-top:6px;display:none;}
+/* FORM */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.req{color:var(--primary);}
+.fc{width:100%;padding:9px 11px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--text);font-family:'Nunito Sans',sans-serif;transition:.2s;}
+.fc:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(179,27,27,.12);}
+.fc::placeholder{color:#2a4a6a;}
+select.fc option{background:#0a1624;}
+textarea.fc{resize:vertical;}
+/* ALERTS */
+.alert{padding:11px 16px;border-radius:5px;font-size:12px;margin-bottom:16px;display:none;}
+.al-s{background:rgba(67,160,71,.15);border:1px solid var(--success);color:#81c784;}
+.al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+/* SAVE ROW */
+.save-row{display:flex;gap:10px;justify-content:flex-end;padding:18px 0 8px;}
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:999;}
+.overlay-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:36px 54px;text-align:center;}
+.spinner{border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;width:38px;height:38px;animation:spin .8s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Flatpickr dark */
+.flatpickr-calendar{background:#0c1e2e!important;border:1px solid #1e3a5f!important;}
+.flatpickr-day{color:#c0d4e8!important;}.flatpickr-day:hover{background:#1e3a5f!important;}
+.flatpickr-day.selected{background:#b31b1b!important;border-color:#b31b1b!important;color:#fff!important;}
+.flatpickr-months,.flatpickr-weekdays{background:#0a1624!important;}
+.flatpickr-current-month,.flatpickr-weekday{color:#c0d4e8!important;fill:#c0d4e8!important;}
+.numInputWrapper input{color:#c0d4e8!important;background:transparent!important;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl">
+    <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+    <div><h1>Rescue 1122</h1><small id="pageSubtitle">Edit Employee</small></div>
+  </div>
+  <div class="tr">
+    <button class="btn btn-back" id="viewBtn" onclick="goView()"><i class="fas fa-eye"></i> View Profile</button>
+    <a href="employee_list.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+  </div>
+</div>
+
+<div class="container">
+  <div id="alertBox" class="alert"></div>
+
+  <!-- PHOTO & IDENTITY -->
+  <div class="sec">
+    <div class="sec-hd"><i class="fas fa-user"></i><h3>Personal Information</h3></div>
+    <div class="sec-body">
+
+      <!-- PHOTO UPLOAD -->
+      <div class="photo-wrap">
+        <div class="photo-circle" id="photo_circle" onclick="document.getElementById('photo_file').click()">
+          <span id="photo_icon"><i class="fas fa-user" style="font-size:36px;color:#3a5a7a"></i></span>
+          <div class="photo-overlay"><i class="fas fa-camera"></i></div>
+        </div>
+        <div class="photo-info">
+          <h4>Employee Photo</h4>
+          <p>Click the photo or button to upload a new image.<br>Accepted: JPG, PNG &nbsp;|&nbsp; Max: 2MB<br><span style="color:var(--success)">Uploading a new photo will replace the existing one.</span></p>
+          <button type="button" class="btn-photo" onclick="document.getElementById('photo_file').click()"><i class="fas fa-camera"></i> Change Photo</button>
+          <input type="file" id="photo_file" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+          <div class="photo-name" id="photo_name"></div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="fg"><label class="lbl">Full Name <span class="req">*</span></label><input type="text" class="fc" id="full_name"></div>
+        <div class="fg"><label class="lbl">Father's Name</label><input type="text" class="fc" id="father_name"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">CNIC <span class="req">*</span></label><input type="text" class="fc" id="cnic" maxlength="15" oninput="fmtCNIC(this)"></div>
+        <div class="fg"><label class="lbl">Date of Birth</label><input type="text" class="fc fp" id="dob" placeholder="DD-MM-YYYY" readonly></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label class="lbl">Gender <span class="req">*</span></label><select class="fc" id="gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+        <div class="fg"><label class="lbl">Blood Group</label><select class="fc" id="blood_group"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Marital Status</label><select class="fc" id="marital_status"><option value="">Select</option></select></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label class="lbl">Religion</label><select class="fc" id="religion"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Sect</label><select class="fc" id="sect"><option value="">Select</option><option>Sunni</option><option>Shia</option><option>Other</option></select></div>
+        <div class="fg"><label class="lbl">Children</label><input type="number" class="fc" id="children" min="0"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Mother Tongue</label><select class="fc" id="mother_tongue"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Domicile</label><select class="fc" id="domicile"><option value="">Select District</option></select></div>
+      </div>
+      <div class="fg"><label class="lbl">Languages Spoken</label><input type="text" class="fc" id="languages" placeholder="e.g. Urdu, English, Sindhi"></div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="sec">
+    <div class="sec-hd"><i class="fas fa-phone"></i><h3>Contact Information</h3></div>
+    <div class="sec-body">
+      <div class="g2">
+        <div class="fg"><label class="lbl">Phone <span class="req">*</span></label><input type="text" class="fc" id="phone" maxlength="12" oninput="fmtPhone(this)"></div>
+        <div class="fg"><label class="lbl">Email</label><input type="email" class="fc" id="email"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Temporary Address</label><textarea class="fc" id="temp_address" rows="2"></textarea></div>
+        <div class="fg"><label class="lbl">Permanent Address</label><textarea class="fc" id="perm_address" rows="2"></textarea></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Emergency Contact</label><input type="text" class="fc" id="emg_name"></div>
+        <div class="fg"><label class="lbl">Emergency Phone</label><input type="text" class="fc" id="emg_phone" maxlength="12" oninput="fmtPhone(this)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPLOYMENT -->
+  <div class="sec">
+    <div class="sec-hd"><i class="fas fa-briefcase"></i><h3>Employment Details</h3></div>
+    <div class="sec-body">
+      <div class="g2">
+        <div class="fg"><label class="lbl">Designation <span class="req">*</span></label><select class="fc" id="designation"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Category</label><select class="fc" id="category"><option value="">Select</option></select></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label class="lbl">Status</label><select class="fc" id="emp_status"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Wing</label><select class="fc" id="wing"><option value="">Select Wing</option></select></div>
+        <div class="fg"><label class="lbl">Station</label><select class="fc" id="station"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Batch No.</label><select class="fc" id="batch_no"><option value="">Select</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Pay Scale</label><select class="fc" id="pay_scale"><option value="">Select BPS</option></select></div>
+        <div class="fg"><label class="lbl">Monthly Pay (PKR)</label><input type="number" class="fc" id="pay" min="0"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Date of Joining <span class="req">*</span></label><input type="text" class="fc fp" id="joining_date" placeholder="DD-MM-YYYY" readonly></div>
+        <div class="fg"><label class="lbl">Reporting Officer</label><select class="fc" id="reporting_officer"><option value="">Select</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Probation Start</label><input type="text" class="fc fp" id="prob_start" placeholder="DD-MM-YYYY" readonly></div>
+        <div class="fg"><label class="lbl">Probation End</label><input type="text" class="fc fp" id="prob_end" placeholder="DD-MM-YYYY" readonly></div>
+      </div>
+      <div class="fg"><label class="lbl">Job Description</label><textarea class="fc" id="job_desc" rows="2"></textarea></div>
+      <div style="border-top:1px solid var(--border);margin:16px 0 16px;"></div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Contract Tier <span class="req">*</span></label>
+          <select class="fc" id="contract_tier">
+            <option value="">Select</option>
+            <option>01</option><option>02</option><option>03</option>
+            <option>04</option><option>05</option><option>06</option>
+            <option>07</option><option>08</option><option>09</option>
+            <option>10</option>
+          </select>
+        </div>
+        <div class="fg"><label class="lbl">Contract No. <span class="req">*</span></label><input type="text" class="fc" id="contract_number" placeholder="e.g. CONT-2024-00123"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Contract Date <span class="req">*</span></label><input type="text" class="fc fp" id="contract_date" placeholder="DD-MM-YYYY" readonly></div>
+        <div class="fg"><label class="lbl">Contract Expiry Date <span class="req">*</span></label><input type="text" class="fc fp" id="contract_expiry_date" placeholder="DD-MM-YYYY" readonly></div>
+      </div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-hd"><i class="fas fa-graduation-cap"></i><h3>Education & Training</h3></div>
+    <div class="sec-body">
+      <div class="g2">
+        <div class="fg"><label class="lbl">Education</label><select class="fc" id="education"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Field of Study</label><input type="text" class="fc" id="field_study"></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Training Done</label><select class="fc" id="training_done"><option value="0">No</option><option value="1">Yes</option></select></div>
+        <div class="fg"><label class="lbl">Training Result</label><select class="fc" id="training_result"><option value="">Select</option><option>Pass</option><option>Fail</option><option>Pending</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Training Date</label><input type="text" class="fc fp" id="training_date" placeholder="DD-MM-YYYY" readonly></div>
+        <div class="fg"><label class="lbl">Training Center</label><input type="text" class="fc" id="training_center"></div>
+      </div>
+      <div class="fg"><label class="lbl">Specializations</label><input type="text" class="fc" id="specializations" placeholder="Comma separated"></div>
+    </div>
+  </div>
+
+  <!-- DOCUMENTS -->
+  <div class="sec">
+    <div class="sec-hd"><i class="fas fa-file-alt"></i><h3>Documents</h3></div>
+    <div class="sec-body">
+      <div class="g2">
+        <div class="fg"><label class="lbl">Offer Letter No.</label><input type="text" class="fc" id="offer_no"></div>
+        <div class="fg"><label class="lbl">Offer Letter Date</label><input type="text" class="fc fp" id="offer_date" placeholder="DD-MM-YYYY" readonly></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Appointment Letter No.</label><input type="text" class="fc" id="appt_no"></div>
+        <div class="fg"><label class="lbl">Appointment Date</label><input type="text" class="fc fp" id="appt_date" placeholder="DD-MM-YYYY" readonly></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label class="lbl">Police Verification</label><select class="fc" id="police_verify"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Medical Certificate</label><select class="fc" id="medical_cert"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">Insurance</label><select class="fc" id="insurance"><option value="">Select</option></select></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label class="lbl">Acceptance Date</label><input type="text" class="fc fp" id="acceptance_date" placeholder="DD-MM-YYYY" readonly></div>
+        <div class="fg"><label class="lbl">Police Verification Date</label><input type="text" class="fc fp" id="police_date" placeholder="DD-MM-YYYY" readonly></div>
+        <div class="fg"><label class="lbl">Medical Certificate Date</label><input type="text" class="fc fp" id="medical_cert_date" placeholder="DD-MM-YYYY" readonly></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM FIELDS (rendered dynamically) -->
+  <div class="sec" id="customFieldsSec" style="display:none">
+    <div class="sec-hd"><i class="fas fa-puzzle-piece"></i><h3>Additional Fields</h3></div>
+    <div class="sec-body" id="customFieldsBody"></div>
+  </div>
+
+  <div class="save-row">
+    <button class="btn btn-back" onclick="goView()"><i class="fas fa-times"></i> Cancel</button>
+    <button class="btn btn-success" onclick="save()"><i class="fas fa-save"></i> Save All Changes</button>
+  </div>
+</div>
+
+<div class="overlay" id="savingOverlay">
+  <div class="overlay-box"><div class="spinner"></div><p style="color:#fff;font-size:13px">Saving changes...</p></div>
+</div>
+
+<script>
+Auth.requireAuth();
+const urlParams = new URLSearchParams(location.search);
+const empId = parseInt(urlParams.get('id')||'0');
+let customFieldDefs = [], existingPhoto = '';
+
+function goView(){window.location.href=`view_employee.html?id=${empId}`;}
+
+async function init(){
+  if(!empId){showAlert('e','No employee ID provided.');return;}
+  document.querySelectorAll('.fp').forEach(el=>flatpickr(el,{dateFormat:'d-m-Y',allowInput:false,disableMobile:true}));
+
+  try{
+    // Load fields and employee in parallel
+    const [fr, er] = await Promise.all([
+      api.get('fields').then(r=>r.json()),
+      api.get(`employees/${empId}`).then(r=>r.json())
+    ]);
+
+    if(!er.success){showAlert('e',er.error||'Employee not found');return;}
+    const f = fr.fields||{};
+    customFieldDefs = fr.custom_fields||[];
+
+    // Fill all dropdowns from DB
+    fillSel('blood_group',   f.blood_group||[]);
+    fillSel('marital_status',f.marital_status||[]);
+    fillSel('religion',      f.religion||[]);
+    fillSel('mother_tongue', f.mother_tongue||[]);
+    fillSel('domicile',      f.domicile||[]);
+    fillSel('designation',   f.designation||[]);
+    fillSel('category',      f.category||[]);
+    fillSel('emp_status',    f.emp_status||[]);
+    fillSel('wing',          f.wing||[]);
+    fillSel('station',       f.station||[]);
+    fillSel('batch_no',      f.batch_no||[]);
+    fillSel('pay_scale',     f.pay_scale||[]);
+    fillSel('reporting_officer',f.reporting_officer||[]);
+    fillSel('education',     f.education||[]);
+    fillSel('police_verify', f.police_verify||[]);
+    fillSel('medical_cert',  f.medical_cert||[]);
+    fillSel('insurance',     f.insurance||[]);
+
+    // Custom fields
+    if(customFieldDefs.length){
+      renderCustomFields(customFieldDefs, er.employee.custom_data_map||{});
+    }
+
+    const e = er.employee;
+    document.getElementById('pageSubtitle').textContent=`Editing: ${e.full_name}`;
+    existingPhoto = e.photo||'';
+
+    // Show existing photo
+    if(e.photo){
+      document.getElementById('photo_circle').innerHTML=`<img src="${PHOTO_BASE}${e.photo}" alt="" onerror="this.outerHTML='<i class=fas fa-user style=font-size:36px;color:#3a5a7a></i>'"><div class="photo-overlay"><i class="fas fa-camera"></i></div>`;
+    }
+
+    // Populate all fields
+    set('full_name',e.full_name);set('father_name',e.father_name);set('cnic',e.cnic);
+    set('gender',e.gender);set('blood_group',e.blood_group);set('marital_status',e.marital_status);
+    set('children',e.children);set('religion',e.religion);set('sect',e.sect);
+    set('mother_tongue',e.mother_tongue);set('domicile',e.domicile);set('languages',e.languages);
+    set('phone',e.phone);set('email',e.email);set('temp_address',e.temp_address);
+    set('perm_address',e.perm_address);set('emg_name',e.emg_name);set('emg_phone',e.emg_phone);
+    set('designation',e.designation);set('category',e.category);set('emp_status',e.emp_status);set('wing',e.wing);
+    set('station',e.station);set('batch_no',e.batch_no);set('pay_scale',e.pay_scale);
+    set('pay',e.pay);set('reporting_officer',e.reporting_officer);set('job_desc',e.job_desc);
+    set('education',e.education);set('field_study',e.field_study);
+    set('training_done',e.training_done);set('training_result',e.training_result);
+    set('training_center',e.training_center);set('specializations',e.specializations);
+    set('offer_no',e.offer_no);set('appt_no',e.appt_no);
+    set('police_verify',e.police_verify);set('medical_cert',e.medical_cert);
+    set('insurance',e.insurance);
+    set('contract_tier',e.contract_tier);set('contract_number',e.contract_number);
+    // Date fields
+    ['dob','joining_date','prob_start','prob_end','offer_date','appt_date',
+     'acceptance_date','police_date','medical_cert_date','training_date',
+     'contract_date','contract_expiry_date'].forEach(f=>setFP(f,e[f]));
+
+  }catch(ex){showAlert('e','Error: '+ex.message);}
+}
+
+function fillSel(id,arr){
+  const el=document.getElementById(id); if(!el)return;
+  const first=el.options[0];el.innerHTML='';el.appendChild(first);
+  arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);});
+}
+
+function renderCustomFields(defs, existingData){
+  const body=document.getElementById('customFieldsBody');
+  body.innerHTML='<div class="g2">';
+  let html='<div class="g2">';
+  defs.forEach(f=>{
+    const val=existingData[f.field_key]||'';
+    const inp = f.field_type==='select'
+      ? `<select class="fc" id="cf_${f.field_key}"><option value="">Select</option></select>`
+      : f.field_type==='textarea'
+      ? `<textarea class="fc" id="cf_${f.field_key}" rows="2">${esc(val)}</textarea>`
+      : f.field_type==='date'
+      ? `<input type="text" class="fc fp" id="cf_${f.field_key}" placeholder="DD-MM-YYYY" readonly>`
+      : `<input type="${f.field_type==='number'?'number':'text'}" class="fc" id="cf_${f.field_key}" value="${esc(val)}">`;
+    html+=`<div class="fg"><label class="lbl"><i class="${f.field_icon||'fas fa-list'}" style="margin-right:4px"></i>${esc(f.field_label)}</label>${inp}</div>`;
+  });
+  html+='</div>';
+  body.innerHTML=html;
+  document.getElementById('customFieldsSec').style.display='block';
+
+  // Fill select custom fields from options
+  defs.filter(f=>f.field_type==='select').forEach(async f=>{
+    try{
+      const res=await api.get(`fields/${encodeURIComponent(f.field_key)}/options`);
+      const d=await res.json();
+      const sel=document.getElementById('cf_'+f.field_key);
+      if(sel)(d.options||[]).filter(o=>o.is_active==1).forEach(o=>{const opt=document.createElement('option');opt.value=o.field_value;opt.textContent=o.field_value;sel.appendChild(opt);});
+      const existing=existingData[f.field_key]||'';
+      if(existing&&sel)sel.value=existing;
+    }catch{}
+  });
+
+  // Date custom fields
+  defs.filter(f=>f.field_type==='date').forEach(f=>{
+    const el=document.getElementById('cf_'+f.field_key);
+    if(el){flatpickr(el,{dateFormat:'d-m-Y',allowInput:false,disableMobile:true});const val=existingData[f.field_key]||'';if(val)setFP('cf_'+f.field_key,val);}
+  });
+}
+
+function set(id,val){const el=document.getElementById(id);if(el&&val!==null&&val!==undefined)el.value=val;}
+function setFP(id,val){
+  if(!val)return;
+  const el=document.getElementById(id);if(!el)return;
+  // DB gives YYYY-MM-DD, flatpickr needs DD-MM-YYYY
+  const p=val.split('-');
+  if(p.length===3&&p[0].length===4){
+    const disp=`${p[2]}-${p[1]}-${p[0]}`;
+    if(el._flatpickr)el._flatpickr.setDate(disp,true,'d-m-Y');
+    else el.value=disp;
+  } else {
+    if(el._flatpickr)el._flatpickr.setDate(val,true);
+    else el.value=val;
+  }
+}
+
+function g(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function fmtCNIC(el){let v=el.value.replace(/\D/g,'');if(v.length>5)v=v.slice(0,5)+'-'+v.slice(5);if(v.length>13)v=v.slice(0,13)+'-'+v.slice(13);el.value=v.slice(0,15);}
+function fmtPhone(el){let v=el.value.replace(/\D/g,'');if(v.length>4)v=v.slice(0,4)+'-'+v.slice(4);el.value=v.slice(0,12);}
+
+function previewPhoto(input){
+  const file=input.files[0]; if(!file)return;
+  if(file.size>2*1024*1024){showAlert('e','❌ Photo must be under 2MB');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('photo_circle').innerHTML=`<img src="${e.target.result}" alt=""><div class="photo-overlay"><i class="fas fa-camera"></i></div>`;
+    document.getElementById('photo_name').textContent='✅ New: '+file.name;
+    document.getElementById('photo_name').style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function save(){
+  if(!g('full_name')||!g('cnic')||!g('gender')||!g('designation')||!g('joining_date')){
+    showAlert('e','❌ Required: Full Name, CNIC, Gender, Designation, Joining Date.');return;
+  }
+  document.getElementById('savingOverlay').style.display='flex';
+
+  // Upload new photo first if changed
+  let newPhoto = '';
+  const photoFile=document.getElementById('photo_file').files[0];
+  if(photoFile){
+    const fd=new FormData(); fd.append('photo',photoFile); fd.append('cnic',g('cnic'));
+    try{const pr=await api.upload(`employees/${empId}/photo`,fd);const pd=await pr.json();if(pd.success)newPhoto=pd.filename;}catch{}
+  }
+
+  // Collect custom field data
+  const customData={};
+  customFieldDefs.forEach(f=>{
+    const el=document.getElementById('cf_'+f.field_key);
+    if(el)customData[f.field_key]=el.value.trim();
+  });
+
+  const payload={
+    id:empId,
+    full_name:g('full_name'),father_name:g('father_name'),cnic:g('cnic'),
+    dob:g('dob'),gender:g('gender'),blood_group:g('blood_group'),
+    marital_status:g('marital_status'),children:parseInt(g('children')||0),
+    religion:g('religion'),sect:g('sect'),mother_tongue:g('mother_tongue'),
+    domicile:g('domicile'),languages:g('languages'),
+    phone:g('phone'),email:g('email'),temp_address:g('temp_address'),perm_address:g('perm_address'),
+    emg_name:g('emg_name'),emg_phone:g('emg_phone'),
+    designation:g('designation'),category:g('category'),emp_status:g('emp_status'),wing:g('wing'),
+    station:g('station'),batch_no:g('batch_no'),pay_scale:g('pay_scale'),
+    pay:g('pay')||null,reporting_officer:g('reporting_officer'),job_desc:g('job_desc'),
+    joining_date:g('joining_date'),prob_start:g('prob_start'),prob_end:g('prob_end'),
+    education:g('education'),field_study:g('field_study'),
+    training_done:parseInt(g('training_done')||0),training_result:g('training_result'),
+    training_date:g('training_date'),training_center:g('training_center'),specializations:g('specializations'),
+    offer_no:g('offer_no'),offer_date:g('offer_date'),appt_no:g('appt_no'),appt_date:g('appt_date'),
+    police_verify:g('police_verify'),medical_cert:g('medical_cert'),medical_cert_date:g('medical_cert_date'),
+    acceptance_date:g('acceptance_date'),police_date:g('police_date'),insurance:g('insurance'),
+    contract_tier:g('contract_tier'),contract_number:g('contract_number'),
+    contract_date:g('contract_date'),contract_expiry_date:g('contract_expiry_date'),
+    photo: newPhoto||null,
+    custom_data: customData,
+  };
+
+  try{
+    const res=await api.put(`employees/${empId}`,payload);
+    const data=await res.json();
+    document.getElementById('savingOverlay').style.display='none';
+    if(data.success){showAlert('s','✅ Employee updated successfully!');setTimeout(()=>goView(),1400);}
+    else showAlert('e','❌ '+(data.error||'Update failed.'));
+  }catch{document.getElementById('savingOverlay').style.display='none';showAlert('e','❌ Server error.');}
+}
+
+function showAlert(t,m){const b=document.getElementById('alertBox');b.className='alert '+(t==='s'?'al-s':'al-e');b.textContent=m;b.style.display='block';window.scrollTo({top:0,behavior:'smooth'});if(t==='s')setTimeout(()=>b.style.display='none',4000);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rescue 1122 — Add Employee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <style>
+        :root {
+            --primary:       #b31b1b;
+            --primary-light: #d32f2f;
+            --text:          #c0d4e8;
+            --bg:            #0b1a2a;
+            --card:          #0c1e2e;
+            --input-bg:      #0a1624;
+            --border:        #1e3a5f;
+            --success:       #43a047;
+            --warning:       #ffa726;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Nunito Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+        /* ── TOP BAR ── */
+        .topbar {
+            background: var(--card);
+            padding: 14px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary);
+        }
+        .topbar-logo { display: flex; align-items: center; gap: 12px; }
+        .topbar-logo .logo-icon {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #fff;
+        }
+        .topbar-logo h1 { font-size: 18px; color: #fff; }
+        .topbar-logo span { font-size: 12px; color: var(--text); display: block; }
+        .btn { padding: 9px 20px; border-radius: 5px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .btn-back { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-back:hover { border-color: var(--primary); color: #fff; }
+
+        /* ── PROGRESS BAR ── */
+        .progress-wrap {
+            background: var(--card);
+            padding: 18px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+        .progress-steps { display: flex; justify-content: space-between; position: relative; }
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px; left: 0; right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+        .step { display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; z-index: 1; cursor: pointer; }
+        .step-circle {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: var(--input-bg);
+            border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; color: var(--text);
+            transition: 0.3s;
+        }
+        .step.active  .step-circle { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .step.done    .step-circle { background: var(--success); border-color: var(--success); color: #fff; }
+        .step-label { font-size: 9px; font-weight: 600; color: var(--text); white-space: nowrap; }
+        .step.active  .step-label { color: var(--primary); }
+        .step.done    .step-label { color: var(--success); }
+
+        /* ── CONTAINER ── */
+        .container { max-width: 900px; margin: 0 auto; padding: 25px 20px; }
+
+        /* ── FORM CARD ── */
+        .form-card {
+            background: var(--card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        .form-card.active { display: block; }
+        .card-header {
+            background: var(--input-bg);
+            padding: 14px 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .card-header i { color: var(--primary); font-size: 16px; }
+        .card-header h3 { font-size: 15px; color: #fff; }
+        .card-body { padding: 25px; }
+
+        /* ── FORM GRID ── */
+        .form-row        { display: grid; grid-template-columns: 1fr 1fr;       gap: 18px; margin-bottom: 18px; }
+        .form-row.col-1  { grid-template-columns: 1fr; }
+        .form-row.col-3  { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label {
+            font-size: 11px; font-weight: 700;
+            color: #6b8fa8; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .form-label .req { color: var(--primary); margin-left: 2px; }
+        .form-control {
+            width: 100%; padding: 10px 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 13px; color: var(--text);
+            font-family: 'Nunito Sans', sans-serif;
+            transition: 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(179,27,27,0.15); }
+        .form-control::placeholder { color: #3a5a7a; }
+        select.form-control option { background: #0a1624; color: #c0d4e8; }
+        .form-control.error { border-color: #e53935; }
+        textarea.form-control { resize: vertical; }
+        .err-msg { font-size: 11px; color: #e53935; display: none; }
+
+        /* ── PHOTO UPLOAD ── */
+        .photo-upload-wrap {
+            display: flex; align-items: center; gap: 25px;
+            margin-bottom: 25px; padding-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+        }
+        .photo-circle {
+            width: 110px; height: 110px; border-radius: 50%;
+            border: 3px solid var(--border);
+            background: var(--input-bg);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; cursor: pointer;
+            transition: 0.2s; overflow: hidden;
+            position: relative;
+        }
+        .photo-circle:hover { border-color: var(--primary); }
+        .photo-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .photo-circle .photo-icon { color: #3a5a7a; font-size: 38px; }
+        .photo-circle .photo-overlay {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: rgba(179,27,27,0.7);
+            display: none; align-items: center; justify-content: center;
+            color: #fff; font-size: 20px;
+        }
+        .photo-circle:hover .photo-overlay { display: flex; }
+        .photo-info h4 { color: #fff; font-size: 14px; margin-bottom: 6px; }
+        .photo-info p  { font-size: 12px; color: #6b8fa8; margin-bottom: 12px; line-height: 1.6; }
+        .btn-photo {
+            padding: 8px 16px;
+            background: var(--input-bg);
+            border: 1px dashed var(--border);
+            border-radius: 5px;
+            color: var(--text); cursor: pointer;
+            font-size: 12px; transition: 0.2s;
+        }
+        .btn-photo:hover { border-color: var(--primary); color: #fff; }
+        .photo-name { font-size: 11px; color: var(--success); margin-top: 6px; display: none; }
+
+        /* ── CNIC STATUS ── */
+        .cnic-status { font-size: 11px; margin-top: 3px; display: none; }
+        .cnic-status.ok      { color: var(--success); display: block; }
+        .cnic-status.dup     { color: #e53935;        display: block; }
+        .cnic-status.checking{ color: var(--warning);  display: block; }
+
+        /* ── TOGGLE ── */
+        .toggle-wrap { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+        .toggle { position: relative; width: 44px; height: 22px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute; inset: 0;
+            background: var(--border); border-radius: 22px;
+            cursor: pointer; transition: 0.3s;
+        }
+        .toggle-slider::before {
+            content: ''; position: absolute;
+            width: 16px; height: 16px;
+            background: #fff; border-radius: 50%;
+            top: 3px; left: 3px; transition: 0.3s;
+        }
+        .toggle input:checked + .toggle-slider { background: var(--primary); }
+        .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+        .toggle-lbl { font-size: 13px; color: var(--text); }
+
+        /* ── CHECKBOX ── */
+        .chk-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .chk-wrap input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+        .chk-wrap span { font-size: 13px; color: var(--text); }
+
+        /* ── TAGS ── */
+        .tags-box {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            padding: 8px 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 5px; min-height: 42px; cursor: text;
+        }
+        .tags-box:focus-within { border-color: var(--primary); }
+        .tag {
+            background: rgba(179,27,27,0.2);
+            border: 1px solid rgba(179,27,27,0.4);
+            color: #ffb3b3;
+            padding: 2px 10px; border-radius: 20px;
+            font-size: 12px; display: flex; align-items: center; gap: 6px;
+        }
+        .tag-x { cursor: pointer; color: var(--primary); font-size: 14px; line-height: 1; }
+        .tag-inp { background: none; border: none; outline: none; color: var(--text); font-size: 13px; min-width: 120px; flex-grow: 1; }
+
+        /* ── DISCIPLINARY FINDINGS ── */
+        .adverse-card {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 18px; margin-bottom: 16px;
+        }
+        .adverse-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px;
+        }
+        .adverse-title { font-size: 13px; font-weight: 700; color: var(--warning); }
+        .btn-rm-adverse {
+            background: rgba(229,57,53,0.15);
+            border: 1px solid rgba(229,57,53,0.3);
+            color: #ef9a9a; padding: 4px 10px;
+            border-radius: 4px; cursor: pointer; font-size: 11px;
+        }
+        .adv-divider { border: none; border-top: 1px dashed var(--border); margin: 14px 0; }
+        .adv-sub {
+            font-size: 11px; font-weight: 700; color: #6b8fa8;
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+        }
+        .btn-add-adv {
+            width: 100%; padding: 10px;
+            background: rgba(179,27,27,0.1);
+            border: 1px dashed var(--primary);
+            border-radius: 5px; color: var(--primary);
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: 0.2s; margin-top: 10px;
+        }
+        .btn-add-adv:hover { background: rgba(179,27,27,0.2); }
+        .no-adverse {
+            text-align: center; padding: 30px;
+            color: #6b8fa8; font-size: 13px;
+        }
+        .no-adverse i { font-size: 32px; margin-bottom: 10px; display: block; color: var(--success); }
+
+        /* ── REVIEW ── */
+        .rev-section { margin-bottom: 20px; }
+        .rev-heading { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+        .rev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .rev-item { display: flex; flex-direction: column; gap: 2px; }
+        .rev-key { font-size: 10px; color: #6b8fa8; text-transform: uppercase; }
+        .rev-val { font-size: 13px; color: #fff; word-break: break-word; }
+
+        /* ── NAV BUTTONS ── */
+        .nav-buttons {
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 20px 0 10px;
+        }
+        .btn-prev { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-next { background: var(--primary); color: #fff; }
+        .btn-next:hover { background: var(--primary-light); }
+        .btn-save { background: var(--success); color: #fff; font-size: 14px; padding: 11px 30px; }
+        .btn-save:hover { background: #388e3c; }
+        .step-ctr { font-size: 12px; color: #6b8fa8; }
+
+        /* ── ALERTS ── */
+        .alert { padding: 12px 18px; border-radius: 5px; margin-bottom: 18px; font-size: 13px; display: none; }
+        .alert-success { background: rgba(67,160,71,0.15); border: 1px solid var(--success); color: #81c784; }
+        .alert-error   { background: rgba(229,57,53,0.15); border: 1px solid #e53935;        color: #ef9a9a; }
+
+        /* ── SAVING OVERLAY ── */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            display: none; align-items: center; justify-content: center; z-index: 999;
+        }
+        .overlay-box {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 40px 60px; text-align: center;
+        }
+        .spinner {
+            border: 3px solid var(--border); border-top-color: var(--primary);
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── SUCCESS ── */
+        .success-screen {
+            display: none; text-align: center;
+            padding: 60px 30px; background: var(--card);
+            border-radius: 8px; border: 1px solid var(--border);
+        }
+        .success-screen i   { font-size: 60px; color: var(--success); margin-bottom: 20px; }
+        .success-screen h2  { font-size: 22px; color: #fff; margin-bottom: 10px; }
+        .success-screen p   { font-size: 14px; color: var(--text); margin-bottom: 30px; }
+        .success-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+        /* ── FLATPICKR DARK OVERRIDE ── */
+        .flatpickr-calendar {
+            background: #0c1e2e !important;
+            border: 1px solid #1e3a5f !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+        }
+        .flatpickr-day { color: #c0d4e8 !important; }
+        .flatpickr-day:hover { background: #1e3a5f !important; }
+        .flatpickr-day.selected { background: #b31b1b !important; border-color: #b31b1b !important; color: #fff !important; }
+        .flatpickr-day.today    { border-color: #b31b1b !important; }
+        .flatpickr-months, .flatpickr-weekdays { background: #0a1624 !important; }
+        .flatpickr-current-month, .flatpickr-weekday { color: #c0d4e8 !important; fill: #c0d4e8 !important; }
+        .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: #c0d4e8 !important; }
+        .numInputWrapper input { color: #c0d4e8 !important; background: transparent !important; }
+        .flatpickr-day.flatpickr-disabled { color: #2a4a6a !important; }
+    </style>
+<script src="config.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════ TOP BAR ═══════════════ -->
+<div class="topbar">
+    <div class="topbar-logo">
+        <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+        <div>
+            <h1>Rescue 1122</h1>
+            <span>Add New Employee</span>
+        </div>
+    </div>
+    <button class="btn btn-back" onclick="window.location.href='admin.html'">
+        <i class="fas fa-arrow-left"></i> Back to Admin
+    </button>
+</div>
+
+<!-- ═══════════════ PROGRESS BAR ═══════════════ -->
+<div class="progress-wrap">
+    <div class="progress-steps">
+        <div class="step active" id="step-dot-1" onclick="goToStep(1)">
+            <div class="step-circle">1</div>
+            <div class="step-label">Personal</div>
+        </div>
+        <div class="step" id="step-dot-2" onclick="goToStep(2)">
+            <div class="step-circle">2</div>
+            <div class="step-label">Contact</div>
+        </div>
+        <div class="step" id="step-dot-3" onclick="goToStep(3)">
+            <div class="step-circle">3</div>
+            <div class="step-label">Education</div>
+        </div>
+        <div class="step" id="step-dot-4" onclick="goToStep(4)">
+            <div class="step-circle">4</div>
+            <div class="step-label">Employment</div>
+        </div>
+        <div class="step" id="step-dot-5" onclick="goToStep(5)">
+            <div class="step-circle">5</div>
+            <div class="step-label">Documents</div>
+        </div>
+        <div class="step" id="step-dot-6" onclick="goToStep(6)">
+            <div class="step-circle">6</div>
+            <div class="step-label">Finance</div>
+        </div>
+        <div class="step" id="step-dot-7" onclick="goToStep(7)">
+            <div class="step-circle">7</div>
+            <div class="step-label">Adverse</div>
+        </div>
+        <div class="step" id="step-dot-8" onclick="goToStep(8)">
+            <div class="step-circle">8</div>
+            <div class="step-label">Review</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="container">
+
+    <div id="alertBox" class="alert"></div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 1 — PERSONAL
+    ══════════════════════════════════════════════ -->
+    <div class="form-card active" id="card-1">
+        <div class="card-header">
+            <i class="fas fa-user"></i>
+            <h3>Personal Information</h3>
+        </div>
+        <div class="card-body">
+
+            <!-- EMPLOYEE ID BADGE -->
+            <div id="empIdBanner" style="
+                display:flex;align-items:center;gap:14px;
+                background:linear-gradient(135deg,rgba(179,27,27,.15),rgba(179,27,27,.05));
+                border:1px solid rgba(179,27,27,.35);border-radius:8px;
+                padding:14px 20px;margin-bottom:22px;">
+                <div style="width:42px;height:42px;border-radius:8px;background:rgba(179,27,27,.2);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fas fa-id-badge" style="color:#ffb3b3;font-size:18px"></i>
+                </div>
+                <div>
+                    <div style="font-size:10px;font-weight:700;color:#6b8fa8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">
+                        Auto-Generated Employee ID
+                    </div>
+                    <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:1px;font-family:monospace" id="empIdDisplay">
+                        <i class="fas fa-spinner fa-spin" style="font-size:14px;color:#6b8fa8"></i>
+                    </div>
+                    <div style="font-size:10px;color:#6b8fa8;margin-top:2px">
+                        This code is assigned automatically when you save
+                    </div>
+                </div>
+            </div>
+
+            <!-- PHOTO UPLOAD -->
+            <div class="photo-upload-wrap">
+                <div class="photo-circle" id="photo_circle"
+                    onclick="document.getElementById('photo_file').click()">
+                    <span class="photo-icon"><i class="fas fa-user"></i></span>
+                    <div class="photo-overlay"><i class="fas fa-camera"></i></div>
+                </div>
+                <div class="photo-info">
+                    <h4>Employee Photo</h4>
+                    <p>Click the circle or button to upload a photo.<br>
+                       Accepted: JPG, PNG &nbsp;|&nbsp; Max size: 2MB</p>
+                    <button type="button" class="btn-photo"
+                        onclick="document.getElementById('photo_file').click()">
+                        <i class="fas fa-camera"></i> Choose Photo
+                    </button>
+                    <input type="file" id="photo_file" accept="image/*"
+                        style="display:none" onchange="previewPhoto(this)">
+                    <div class="photo-name" id="photo_name"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Full Name <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="full_name"
+                        placeholder="e.g. Adeel Hashim Siddiqui">
+                    <span class="err-msg" id="err_full_name">Full name is required</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Father's Name</label>
+                    <input type="text" class="form-control" id="father_name"
+                        placeholder="e.g. Ghulam Hashim Siddiqui">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">CNIC <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="cnic"
+                        placeholder="00000-0000000-0" maxlength="15"
+                        oninput="formatCNIC(this)" onblur="checkCNIC()">
+                    <span class="cnic-status" id="cnic_status"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date of Birth <span class="req">*</span></label>
+                    <input type="text" class="form-control fp" id="dob"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+            </div>
+
+            <div class="form-row col-3">
+                <div class="form-group">
+                    <label class="form-label">Gender <span class="req">*</span></label>
+                    <select class="form-control" id="gender">
+                        <option value="">Select</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Blood Group</label>
+                    <select class="form-control" id="blood_group"><option value="">Select</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Marital Status</label>
+                    <select class="form-control" id="marital_status"><option value="">Select</option></select>
+                </div>
+            </div>
+
+            <div class="form-row col-3">
+                <div class="form-group">
+                    <label class="form-label">Religion</label>
+                    <select class="form-control" id="religion"><option value="">Select</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sect</label>
+                    <select class="form-control" id="sect">
+                        <option value="">Select</option>
+                        <option>Sunni</option>
+                        <option>Shia</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">No. of Children</label>
+                    <input type="number" class="form-control" id="children"
+                        min="0" max="20" placeholder="0" value="0">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Mother Tongue</label>
+                    <select class="form-control" id="mother_tongue"><option value="">Select</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Domicile</label>
+                    <select class="form-control" id="domicile"><option value="">Select District</option></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Languages Spoken</label>
+                <div class="tags-box" id="lang_box"
+                    onclick="document.getElementById('lang_inp').focus()">
+                    <input type="text" class="tag-inp" id="lang_inp"
+                        placeholder="Type language and press Enter..."
+                        onkeydown="addTag(event,'lang_hidden',this)">
+                </div>
+                <input type="hidden" id="lang_hidden">
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 2 — CONTACT
+    ══════════════════════════════════════════════ -->
+    <div class="form-card" id="card-2">
+        <div class="card-header">
+            <i class="fas fa-phone"></i>
+            <h3>Contact Information</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Contact Number <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="phone"
+                        placeholder="0000-0000000" maxlength="12"
+                        oninput="formatPhone(this)">
+                    <span class="err-msg" id="err_phone">Contact number is required</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email"
+                        placeholder="name@example.com">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:18px">
+                <label class="form-label">Temporary Address</label>
+                <textarea class="form-control" id="temp_address" rows="2"
+                    placeholder="House/Flat No, Street, Area, City"
+                    oninput="syncAddress()"></textarea>
+            </div>
+
+            <div style="margin-bottom:14px">
+                <label class="chk-wrap">
+                    <input type="checkbox" id="same_addr"
+                        onchange="toggleSameAddr()">
+                    <span>Permanent address same as temporary address</span>
+                </label>
+            </div>
+
+            <div class="form-group" style="margin-bottom:18px" id="perm_wrap">
+                <label class="form-label">Permanent Address</label>
+                <textarea class="form-control" id="perm_address" rows="2"
+                    placeholder="House/Flat No, Street, Area, City"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Emergency Contact Person</label>
+                    <input type="text" class="form-control" id="emg_name"
+                        placeholder="Contact person name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Emergency Contact Number</label>
+                    <input type="text" class="form-control" id="emg_phone"
+                        placeholder="0000-0000000" maxlength="12"
+                        oninput="formatPhone(this)">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 4 — EMPLOYMENT
+    ══════════════════════════════════════════════ -->
+    <div class="form-card" id="card-4">
+        <div class="card-header">
+            <i class="fas fa-briefcase"></i>
+            <h3>Employment Details</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Designation <span class="req">*</span></label>
+                    <select class="form-control" id="designation"><option value="">Select Designation</option></select>
+                    <span class="err-msg" id="err_designation">Designation is required</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-control" id="category"><option value="">Select</option></select>
+                </div>
+            </div>
+
+            <div class="form-row" style="grid-template-columns:repeat(4,1fr)">
+                <div class="form-group">
+                    <label class="form-label">Employment Status</label>
+                    <select class="form-control" id="emp_status"><option value="">Select</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Wing</label>
+                    <select class="form-control" id="wing"><option value="">Select Wing</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Station</label>
+                    <select class="form-control" id="station"><option value="">Select Station</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Batch No.</label>
+                    <select class="form-control" id="batch_no"><option value="">Select</option></select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Pay Scale / Grade</label>
+                    <select class="form-control" id="pay_scale"><option value="">Select BPS Grade</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Monthly Pay (PKR)</label>
+                    <input type="number" class="form-control" id="pay"
+                        placeholder="e.g. 135000" min="0">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Date of Joining <span class="req">*</span></label>
+                    <input type="text" class="form-control fp" id="joining_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                    <span class="err-msg" id="err_joining">Date of joining is required</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reporting Officer</label>
+                    <select class="form-control" id="reporting_officer"><option value="">Select</option></select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Probation Start</label>
+                    <input type="text" class="form-control fp" id="prob_start"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        Probation End
+                        <small style="color:#6b8fa8;text-transform:none;font-size:10px">
+                            (auto from start + 1 year)
+                        </small>
+                    </label>
+                    <input type="text" class="form-control fp" id="prob_end"
+                        placeholder="DD-MM-YYYY" readonly
+                        style="color:#6b8fa8">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Rescue Training Completed?</label>
+                    <div class="toggle-wrap">
+                        <label class="toggle">
+                            <input type="checkbox" id="training_done"
+                                onchange="toggleTraining()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-lbl" id="training_lbl">No</span>
+                    </div>
+                </div>
+                <div class="form-group" id="training_result_wrap" style="display:none">
+                    <label class="form-label">Training Result</label>
+                    <select class="form-control" id="training_result">
+                        <option>Pass</option>
+                        <option>Fail</option>
+                        <option>Pending</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" id="training_extra" style="display:none">
+                <div class="form-group">
+                    <label class="form-label">Training Completion Date</label>
+                    <input type="text" class="form-control fp" id="training_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Training Center / Institution</label>
+                    <input type="text" class="form-control" id="training_center"
+                        placeholder="e.g. Rescue 1122 Training Academy">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Job Description / Note</label>
+                <textarea class="form-control" id="job_desc" rows="2"
+                    placeholder="Short description of duties..."></textarea>
+            </div>
+
+            <!-- CONTRACT -->
+            <div style="border-top:1px solid var(--border);margin:18px 0 18px;"></div>
+            <div class="form-row col-3">
+                <div class="form-group">
+                    <label class="form-label">Contract Tier <span class="req">*</span></label>
+                    <select class="form-control" id="contract_tier">
+                        <option value="">Select</option>
+                        <option>01</option><option>02</option><option>03</option>
+                        <option>04</option><option>05</option><option>06</option>
+                        <option>07</option><option>08</option><option>09</option>
+                        <option>10</option>
+                    </select>
+                    <span class="err-msg" id="err_contract_tier">Contract tier is required</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contract No. <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="contract_number"
+                        placeholder="e.g. CONT-2024-00123">
+                    <span class="err-msg" id="err_contract_number">Contract number is required</span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Contract Date <span class="req">*</span></label>
+                    <input type="text" class="form-control fp" id="contract_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                    <span class="err-msg" id="err_contract_date">Contract date is required</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contract Expiry Date <span class="req">*</span></label>
+                    <input type="text" class="form-control fp" id="contract_expiry_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                    <span class="err-msg" id="err_contract_expiry">Expiry date is required</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 3 — EDUCATION
+    ══════════════════════════════════════════════ -->
+    <div class="form-card" id="card-3">
+        <div class="card-header">
+            <i class="fas fa-graduation-cap"></i>
+            <h3>Education & Training</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Highest Education</label>
+                    <select class="form-control" id="education"><option value="">Select</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Field of Study</label>
+                    <input type="text" class="form-control" id="field_study"
+                        placeholder="e.g. Electrical Engineering">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Specializations / Expertise</label>
+                <div class="tags-box" id="spec_box"
+                    onclick="document.getElementById('spec_inp').focus()">
+                    <input type="text" class="tag-inp" id="spec_inp"
+                        placeholder="Type specialization and press Enter..."
+                        onkeydown="addTag(event,'spec_hidden',this)">
+                </div>
+                <input type="hidden" id="spec_hidden">
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 5 — DOCUMENTS
+    ══════════════════════════════════════════════ -->
+    <div class="form-card" id="card-5">
+        <div class="card-header">
+            <i class="fas fa-file-alt"></i>
+            <h3>Documents</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Offer Letter No.</label>
+                    <input type="text" class="form-control" id="offer_no"
+                        placeholder="e.g. PD/SRP/PDMA/Sindh/1708/2022">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Offer Letter Date</label>
+                    <input type="text" class="form-control fp" id="offer_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+                <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Employee Acceptance Date</label>
+                    <input type="text" class="form-control fp" id="acceptance_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Appointment Letter No.</label>
+                    <input type="text" class="form-control" id="appt_no"
+                        placeholder="e.g. PD/SRP/PDMA/Sindh/2663/2022">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Appointment Letter Date</label>
+                    <input type="text" class="form-control fp" id="appt_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+            </div>
+            <div class="form-row col-3">
+                <div class="form-group">
+                    <label class="form-label">Police Verification</label>
+                    <select class="form-control" id="police_verify"><option value="">Select</option></select>
+                </div>
+            <div class="form-group">
+                    <label class="form-label">Police Verification Date</label>
+                    <input type="text" class="form-control fp" id="police_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Medical Certificate</label>
+                    <select class="form-control" id="medical_cert"><option value="">Select</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Medical Certificate Date</label>
+                    <input type="text" class="form-control fp" id="medical_cert_date"
+                        placeholder="DD-MM-YYYY" readonly>
+                </div>
+            </div>
+            
+                
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 6 — FINANCE
+    ══════════════════════════════════════════════ -->
+    <div class="form-card" id="card-6">
+        <div class="card-header">
+            <i class="fas fa-money-bill-wave"></i>
+            <h3>Finance & Banking</h3>
+        </div>
+        <div class="card-body">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Insurance Plan</label>
+                    <select class="form-control" id="insurance"><option value="">Select</option></select>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 7 — DISCIPLINARY FINDINGS
+    ══════════════════════════════════════════════ -->
+    <div class="form-card" id="card-7">
+        <div class="card-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Disciplinary Findings</h3>
+        </div>
+        <div class="card-body">
+
+            <p style="font-size:12px;color:#6b8fa8;margin-bottom:20px;line-height:1.7">
+                Record any warnings, show cause notices or disciplinary actions
+                against this employee. You can add multiple entries.
+                Leave empty if there are none.
+            </p>
+
+            <div class="no-adverse" id="no_adverse">
+                <i class="fas fa-check-circle"></i>
+                No disciplinary findings — clean record
+            </div>
+
+            <div id="adverse_list"></div>
+
+            <button type="button" class="btn-add-adv" onclick="addAdverse()">
+                <i class="fas fa-plus"></i> Add Adverse Entry
+            </button>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         STEP 8 — REVIEW
+    ══════════════════════════════════════════════ -->
+    <div class="form-card" id="card-8">
+        <div class="card-header">
+            <i class="fas fa-clipboard-check"></i>
+            <h3>Review & Confirm</h3>
+        </div>
+        <div class="card-body">
+            <p style="font-size:13px;color:#6b8fa8;margin-bottom:20px">
+                Review all details carefully before saving the employee record.
+            </p>
+            <div id="review_content"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         SUCCESS SCREEN
+    ══════════════════════════════════════════════ -->
+    <div class="success-screen" id="success_screen">
+        <i class="fas fa-check-circle"></i>
+        <h2>Employee Added Successfully!</h2>
+        <p id="success_msg">Record has been saved to the database.</p>
+        <div class="success-btns">
+            <button class="btn btn-next" onclick="resetForm()">
+                <i class="fas fa-plus"></i> Add Another Employee
+            </button>
+            <button class="btn btn-save" onclick="window.location.href='employee_list.html'">
+                <i class="fas fa-list"></i> View All Employees
+            </button>
+        </div>
+    </div>
+
+    <!-- NAV BUTTONS -->
+    <div class="nav-buttons" id="nav_btns">
+        <button class="btn btn-prev" id="btn_prev"
+            onclick="changeStep(-1)" style="display:none">
+            <i class="fas fa-arrow-left"></i> Previous
+        </button>
+        <span class="step-ctr" id="step_ctr">Step 1 of 8</span>
+        <button class="btn btn-next" id="btn_next" onclick="changeStep(1)">
+            Next <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+
+</div><!-- end container -->
+
+<!-- SAVING OVERLAY -->
+<div class="overlay" id="saving_overlay">
+    <div class="overlay-box">
+        <div class="spinner"></div>
+        <p style="color:#fff;font-size:14px">Saving employee record...</p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+// API from config.js
+Auth.requireAuth();
+const TOTAL      = 8;
+let   curStep    = 1;
+let   advCount   = 0;
+
+// ─────────────────────────────────────────────────────
+// INIT — Flatpickr on all .fp inputs
+// ─────────────────────────────────────────────────────
+function initFP() {
+    document.querySelectorAll('.fp').forEach(el => {
+        flatpickr(el, {
+            dateFormat:    'd-m-Y',
+            allowInput:    false,
+            disableMobile: true,
+            onChange: function(sel, dateStr, inst) {
+                // Probation auto-calc on joining_date or prob_start
+                if (inst.element.id === 'joining_date') {
+                    setProbStart(dateStr);
+                }
+                if (inst.element.id === 'prob_start') {
+                    calcProbEnd(dateStr);
+                }
+            }
+        });
+    });
+}
+
+// ─────────────────────────────────────────────────────
+// STEP NAVIGATION
+// ─────────────────────────────────────────────────────
+function changeStep(dir) {
+    if (dir === 1 && !validate(curStep)) return;
+    const next = curStep + dir;
+    if (next < 1 || next > TOTAL) return;
+    if (next === TOTAL) buildReview();
+
+    document.getElementById('card-'     + curStep).classList.remove('active');
+    document.getElementById('step-dot-' + curStep).classList.remove('active');
+    if (dir === 1) document.getElementById('step-dot-' + curStep).classList.add('done');
+
+    curStep = next;
+    document.getElementById('card-'     + curStep).classList.add('active');
+    document.getElementById('step-dot-' + curStep).classList.add('active');
+
+    document.getElementById('step_ctr').textContent = `Step ${curStep} of ${TOTAL}`;
+    document.getElementById('btn_prev').style.display = curStep > 1 ? 'block' : 'none';
+
+    const nxt = document.getElementById('btn_next');
+    if (curStep === TOTAL) {
+        nxt.innerHTML   = '<i class="fas fa-save"></i> Save Employee';
+        nxt.className   = 'btn btn-save';
+        nxt.onclick     = saveEmployee;
+    } else {
+        nxt.innerHTML   = 'Next <i class="fas fa-arrow-right"></i>';
+        nxt.className   = 'btn btn-next';
+        nxt.onclick     = () => changeStep(1);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goToStep(n) {
+    if (n >= curStep) return;
+    document.getElementById('card-'     + curStep).classList.remove('active');
+    document.getElementById('step-dot-' + curStep).classList.remove('active');
+    curStep = n;
+    document.getElementById('card-'     + curStep).classList.add('active');
+    document.getElementById('step-dot-' + curStep).classList.add('active');
+    document.getElementById('step_ctr').textContent = `Step ${curStep} of ${TOTAL}`;
+    document.getElementById('btn_prev').style.display = curStep > 1 ? 'block' : 'none';
+    const nxt     = document.getElementById('btn_next');
+    nxt.innerHTML = 'Next <i class="fas fa-arrow-right"></i>';
+    nxt.className = 'btn btn-next';
+    nxt.onclick   = () => changeStep(1);
+}
+
+// ─────────────────────────────────────────────────────
+// VALIDATION
+// ─────────────────────────────────────────────────────
+function validate(step) {
+    let ok = true;
+    if (step === 1) {
+        if (!req('full_name',    'err_full_name'))  ok = false;
+        if (!req('cnic'))                           ok = false;
+        if (!req('dob'))                            ok = false;
+        if (!req('gender'))                         ok = false;
+    }
+    if (step === 2) {
+        if (!req('phone', 'err_phone'))             ok = false;
+    }
+    if (step === 3) {
+        // Education — no required fields
+    }
+    if (step === 4) {
+        if (!req('designation',       'err_designation'))   ok = false;
+        if (!req('joining_date',      'err_joining'))        ok = false;
+        if (!req('contract_tier',     'err_contract_tier'))  ok = false;
+        if (!req('contract_number',   'err_contract_number'))ok = false;
+        if (!req('contract_date',     'err_contract_date'))  ok = false;
+        if (!req('contract_expiry_date','err_contract_expiry'))ok = false;
+    }
+    return ok;
+}
+function req(id, errId) {
+    const el  = document.getElementById(id);
+    const val = el ? el.value.trim() : '';
+    const ok  = val !== '';
+    if (el) el.classList.toggle('error', !ok);
+    if (errId) document.getElementById(errId).style.display = ok ? 'none' : 'block';
+    return ok;
+}
+
+// ─────────────────────────────────────────────────────
+// PHOTO PREVIEW
+// ─────────────────────────────────────────────────────
+function previewPhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+        showAlert('error', '❌ Photo must be under 2MB');
+        input.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+        const c = document.getElementById('photo_circle');
+        c.innerHTML = `
+            <img src="${e.target.result}" alt="Preview">
+            <div class="photo-overlay"><i class="fas fa-camera"></i></div>`;
+        const n = document.getElementById('photo_name');
+        n.textContent = '✅ ' + file.name;
+        n.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+// ─────────────────────────────────────────────────────
+// CNIC FORMAT & DUPLICATE CHECK
+// ─────────────────────────────────────────────────────
+function formatCNIC(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length > 5)  v = v.slice(0,5)  + '-' + v.slice(5);
+    if (v.length > 13) v = v.slice(0,13) + '-' + v.slice(13);
+    el.value = v.slice(0, 15);
+}
+let cnicTimer;
+function checkCNIC() {
+    const cnic = document.getElementById('cnic').value.trim();
+    const st   = document.getElementById('cnic_status');
+    if (cnic.length !== 15) return;
+    st.textContent = 'Checking...';
+    st.className   = 'cnic-status checking';
+    clearTimeout(cnicTimer);
+    cnicTimer = setTimeout(async () => {
+        try {
+            const res  = await api.get('employees/check-cnic', {cnic});
+            const data = await res.json();
+            if (data.exists) {
+                st.textContent = '⚠️ This CNIC already exists in the system!';
+                st.className   = 'cnic-status dup';
+                document.getElementById('cnic').classList.add('error');
+            } else {
+                st.textContent = '✅ CNIC is available';
+                st.className   = 'cnic-status ok';
+                document.getElementById('cnic').classList.remove('error');
+            }
+        } catch { st.className = 'cnic-status'; }
+    }, 600);
+}
+
+// ─────────────────────────────────────────────────────
+// PHONE FORMAT
+// ─────────────────────────────────────────────────────
+function formatPhone(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4);
+    el.value = v.slice(0, 12);
+}
+
+// ─────────────────────────────────────────────────────
+// ADDRESS SYNC
+// ─────────────────────────────────────────────────────
+function syncAddress() {
+    if (document.getElementById('same_addr').checked) {
+        document.getElementById('perm_address').value =
+            document.getElementById('temp_address').value;
+    }
+}
+function toggleSameAddr() {
+    const chk = document.getElementById('same_addr').checked;
+    document.getElementById('perm_wrap').style.opacity = chk ? '0.5' : '1';
+    document.getElementById('perm_address').readOnly   = chk;
+    if (chk) syncAddress();
+}
+
+// ─────────────────────────────────────────────────────
+// PROBATION AUTO-CALCULATE
+// ─────────────────────────────────────────────────────
+function setProbStart(dateStr) {
+    const fp = document.getElementById('prob_start')._flatpickr;
+    if (fp) fp.setDate(dateStr, true);
+    calcProbEnd(dateStr);
+}
+function calcProbEnd(dateStr) {
+    if (!dateStr) return;
+    const parts = dateStr.split('-');
+    const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    d.setFullYear(d.getFullYear() + 1);
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yy = d.getFullYear();
+    const fp = document.getElementById('prob_end')._flatpickr;
+    if (fp) fp.setDate(`${dd}-${mm}-${yy}`, true);
+}
+
+// ─────────────────────────────────────────────────────
+// TRAINING TOGGLE
+// ─────────────────────────────────────────────────────
+function toggleTraining() {
+    const done = document.getElementById('training_done').checked;
+    document.getElementById('training_lbl').textContent = done ? 'Yes' : 'No';
+    document.getElementById('training_result_wrap').style.display = done ? 'block' : 'none';
+    document.getElementById('training_extra').style.display        = done ? 'grid'  : 'none';
+}
+
+// ─────────────────────────────────────────────────────
+// TAGS INPUT
+// ─────────────────────────────────────────────────────
+function addTag(e, hidId, inp) {
+    if (e.key !== 'Enter' && e.key !== ',') return;
+    e.preventDefault();
+    const val = inp.value.trim();
+    if (!val) return;
+    const hid  = document.getElementById(hidId);
+    const box  = inp.parentElement;
+    const tag  = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${val} <span class="tag-x"
+        onclick="removeTag(this,'${hidId}')">×</span>`;
+    box.insertBefore(tag, inp);
+    const arr  = hid.value ? hid.value.split(',') : [];
+    arr.push(val);
+    hid.value  = arr.join(',');
+    inp.value  = '';
+}
+function removeTag(el, hidId) {
+    const tag = el.parentElement;
+    const val = tag.childNodes[0].nodeValue.trim();
+    const hid = document.getElementById(hidId);
+    hid.value = hid.value.split(',').filter(t => t.trim() !== val).join(',');
+    tag.remove();
+}
+
+// ─────────────────────────────────────────────────────
+// DISCIPLINARY FINDINGS
+// ─────────────────────────────────────────────────────
+function addAdverse() {
+    advCount++;
+    document.getElementById('no_adverse').style.display = 'none';
+    const id = 'adv_' + advCount;
+    const n  = advCount;
+
+    const html = `
+    <div class="adverse-card" id="${id}">
+        <div class="adverse-header">
+            <span class="adverse-title">
+                <i class="fas fa-exclamation-circle"></i> Entry #${n}
+            </span>
+            <button type="button" class="btn-rm-adverse"
+                onclick="removeAdverse('${id}')">
+                <i class="fas fa-trash"></i> Remove
+            </button>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Type of Adverse Entry</label>
+                <select class="form-control" id="${id}_type">
+                    <option value="">Select Type</option>
+                    <option>Warning</option>
+                    <option>Show Cause</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date of Entry</label>
+                <input type="text" class="form-control adv-fp"
+                    id="${id}_date" placeholder="DD-MM-YYYY" readonly>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Details / Description</label>
+            <textarea class="form-control" id="${id}_details" rows="2"
+                placeholder="Describe the adverse action in detail..."></textarea>
+        </div>
+
+        <hr class="adv-divider">
+        <p class="adv-sub">Employee Reply</p>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Employee Reply / Explanation</label>
+                <textarea class="form-control" id="${id}_emp_reply" rows="2"
+                    placeholder="Employee's written reply or explanation..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reply Date</label>
+                <input type="text" class="form-control adv-fp"
+                    id="${id}_reply_date" placeholder="DD-MM-YYYY" readonly>
+            </div>
+        </div>
+
+        <hr class="adv-divider">
+        <p class="adv-sub">Management Decision</p>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Management Action</label>
+                <select class="form-control" id="${id}_mgmt_action"
+                    onchange="toggleReason('${id}')">
+                    <option value="">Pending Decision</option>
+                    <option value="Accepted">✅ Accepted — Reply Accepted</option>
+                    <option value="Rejected">❌ Rejected — Reply Not Accepted</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Decision Date</label>
+                <input type="text" class="form-control adv-fp"
+                    id="${id}_mgmt_date" placeholder="DD-MM-YYYY" readonly>
+            </div>
+        </div>
+
+        <div class="form-group" id="${id}_reason_wrap" style="display:none">
+            <label class="form-label">Reason for Decision</label>
+            <textarea class="form-control" id="${id}_reason" rows="2"
+                placeholder="Explain the reason for accepting or rejecting the employee's reply..."></textarea>
+        </div>
+
+    </div>`;
+
+    document.getElementById('adverse_list').insertAdjacentHTML('beforeend', html);
+
+    // Init flatpickr on new date fields
+    document.querySelectorAll(`#${id} .adv-fp`).forEach(el => {
+        flatpickr(el, {
+            dateFormat:    'd-m-Y',
+            allowInput:    false,
+            disableMobile: true
+        });
+    });
+}
+
+function removeAdverse(id) {
+    document.getElementById(id).remove();
+    if (!document.querySelectorAll('.adverse-card').length) {
+        document.getElementById('no_adverse').style.display = 'block';
+    }
+}
+
+function toggleReason(id) {
+    const action = document.getElementById(id + '_mgmt_action').value;
+    document.getElementById(id + '_reason_wrap').style.display =
+        action ? 'block' : 'none';
+}
+
+function collectAdverse() {
+    return Array.from(document.querySelectorAll('.adverse-card')).map(card => {
+        const id = card.id;
+        const g  = s => { const el = document.getElementById(id+s); return el ? el.value.trim() : ''; };
+        return {
+            type:        g('_type'),
+            date:        g('_date'),
+            details:     g('_details'),
+            emp_reply:   g('_emp_reply'),
+            reply_date:  g('_reply_date'),
+            mgmt_action: g('_mgmt_action'),
+            mgmt_date:   g('_mgmt_date'),
+            reason:      g('_reason')
+        };
+    });
+}
+
+// ─────────────────────────────────────────────────────
+// BUILD REVIEW
+// ─────────────────────────────────────────────────────
+function buildReview() {
+    const g = id => {
+        const el = document.getElementById(id);
+        return (el && el.value.trim()) ? el.value.trim() : '—';
+    };
+
+    const sections = [
+        { t: '👤 Personal', rows: [
+            ['Full Name',    g('full_name')],
+            ['Father Name',  g('father_name')],
+            ['CNIC',         g('cnic')],
+            ['Date of Birth',g('dob')],
+            ['Gender',       g('gender')],
+            ['Blood Group',  g('blood_group')],
+            ['Marital Status',g('marital_status')],
+            ['Religion',     g('religion')],
+            ['Sect',         g('sect')],
+            ['Domicile',     g('domicile')],
+            ['Languages',    g('lang_hidden')]
+        ]},
+        { t: '📞 Contact', rows: [
+            ['Phone',         g('phone')],
+            ['Email',         g('email')],
+            ['Temp Address',  g('temp_address')],
+            ['Perm Address',  g('perm_address')],
+            ['Emg. Contact',  g('emg_name')],
+            ['Emg. Phone',    g('emg_phone')]
+        ]},
+        { t: '💼 Employment', rows: [
+            ['Designation',   g('designation')],
+            ['Category',      g('category')],
+            ['Status',        g('emp_status')],
+            ['Wing',          g('wing')],
+            ['Station',       g('station')],
+            ['Pay Scale',     g('pay_scale')],
+            ['Pay (PKR)',      g('pay')],
+            ['Batch No.',     g('batch_no')],
+            ['Date of Joining', g('joining_date')],
+            ['Probation',     `${g('prob_start')} → ${g('prob_end')}`],
+            ['Contract Tier', g('contract_tier')],
+            ['Contract No.',  g('contract_number')],
+            ['Contract Date', g('contract_date')],
+            ['Contract Expiry', g('contract_expiry_date')]
+        ]},
+        { t: '🎓 Education', rows: [
+            ['Education',       g('education')],
+            ['Field of Study',  g('field_study')],
+            ['Training',        document.getElementById('training_done').checked ? 'Yes' : 'No'],
+            ['Specializations', g('spec_hidden')]
+        ]},
+        { t: '📄 Documents', rows: [
+            ['Offer Letter',     g('offer_no') + (g('offer_date') !== '—' ? ' | ' + g('offer_date') : '')],
+            ['Acceptance Date',  g('acceptance_date')],
+            ['Appointment',      g('appt_no')  + (g('appt_date')  !== '—' ? ' | ' + g('appt_date')  : '')],
+            ['Police Verify',    g('police_verify')],
+            ['Medical Cert.',    g('medical_cert')],
+            ['Insurance',        g('insurance')]
+        ]},
+    ];
+
+    const adverseList = collectAdverse();
+    const adverseRows = adverseList.length === 0
+        ? [['Status', '✅ Clean Record — No disciplinary findings']]
+        : adverseList.map((e, i) => [
+            `Entry ${i+1}`,
+            `${e.type || '—'} | ${e.date || '—'} | Decision: ${e.mgmt_action || 'Pending'}`
+          ]);
+    sections.push({ t: '⚠️ Disciplinary Findings', rows: adverseRows });
+
+    document.getElementById('review_content').innerHTML =
+        sections.map(s => `
+            <div class="rev-section">
+                <div class="rev-heading">${s.t}</div>
+                <div class="rev-grid">
+                    ${s.rows.map(r => `
+                        <div class="rev-item">
+                            <span class="rev-key">${r[0]}</span>
+                            <span class="rev-val">${r[1]}</span>
+                        </div>`).join('')}
+                </div>
+            </div>`).join('');
+}
+
+// ─────────────────────────────────────────────────────
+// COLLECT ALL DATA
+// ─────────────────────────────────────────────────────
+function collectData() {
+    const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+    // Collect any custom fields that were dynamically added
+    const custom_data = {};
+    document.querySelectorAll('[data-custom="1"]').forEach(el => {
+        const key = el.id.replace('cf_', '');
+        if (key && el.value) custom_data[key] = el.value;
+    });
+
+    return {
+        full_name:         g('full_name'),
+        father_name:       g('father_name'),
+        cnic:              g('cnic'),
+        dob:               g('dob'),
+        gender:            g('gender'),
+        blood_group:       g('blood_group'),
+        marital_status:    g('marital_status'),
+        children:          g('children'),
+        religion:          g('religion'),
+        sect:              g('sect'),
+        mother_tongue:     g('mother_tongue'),
+        domicile:          g('domicile'),
+        languages:         g('lang_hidden'),
+        phone:             g('phone'),
+        email:             g('email'),
+        temp_address:      g('temp_address'),
+        perm_address:      g('perm_address'),
+        emg_name:          g('emg_name'),
+        emg_phone:         g('emg_phone'),
+        designation:       g('designation'),
+        category:          g('category'),
+        emp_status:        g('emp_status'),
+        wing:              g('wing'),
+        station:           g('station'),
+        pay_scale:         g('pay_scale'),
+        pay:               g('pay'),
+        batch_no:          g('batch_no'),
+        joining_date:      g('joining_date'),
+        prob_start:        g('prob_start'),
+        prob_end:          g('prob_end'),
+        reporting_officer: g('reporting_officer'),
+        job_desc:          g('job_desc'),
+        contract_tier:        g('contract_tier'),
+        contract_number:      g('contract_number'),
+        contract_date:        g('contract_date'),
+        contract_expiry_date: g('contract_expiry_date'),
+        education:         g('education'),
+        field_study:       g('field_study'),
+        training_done:     document.getElementById('training_done').checked ? 1 : 0,
+        training_result:   g('training_result'),
+        training_date:     g('training_date'),
+        training_center:   g('training_center'),
+        specializations:   g('spec_hidden'),
+        offer_no:          g('offer_no'),
+        offer_date:        g('offer_date'),
+        appt_no:           g('appt_no'),
+        appt_date:         g('appt_date'),
+        police_verify:     g('police_verify'),
+        police_date:       g('police_date'),
+        medical_cert:      g('medical_cert'),
+        medical_cert_date: g('medical_cert_date'),
+        acceptance_date:   g('acceptance_date'),
+        insurance:         g('insurance'),
+        disciplinary_findings:   collectAdverse(),
+        custom_data:       custom_data,
+    };
+}
+
+// ─────────────────────────────────────────────────────
+// SAVE EMPLOYEE
+// ─────────────────────────────────────────────────────
+async function saveEmployee() {
+    document.getElementById('saving_overlay').style.display = 'flex';
+    const payload = collectData();
+
+    try {
+        const res  = await api.post('employees', payload);
+        const data = await res.json();
+
+        if (data.success) {
+            // Upload photo if selected — now we have the real employee ID
+            const photoFile = document.getElementById('photo_file').files[0];
+            if (photoFile && data.id) {
+                const fd = new FormData();
+                fd.append('photo', photoFile);
+                fd.append('cnic', payload.cnic);
+                try {
+                    await api.upload(`employees/${data.id}/photo`, fd);
+                } catch(e) { /* photo upload failure is non-fatal */ }
+            }
+            document.getElementById('saving_overlay').style.display = 'none';
+            document.getElementById('card-8').style.display    = 'none';
+            document.getElementById('nav_btns').style.display  = 'none';
+            document.getElementById('success_screen').style.display = 'block';
+            document.getElementById('success_msg').textContent =
+                `${payload.full_name} has been added successfully. Employee Code: ${data.emp_code}`;
+        } else {
+            document.getElementById('saving_overlay').style.display = 'none';
+            showAlert('error', '❌ ' + (data.error || 'Failed to save. Please try again.'));
+        }
+    } catch {
+        document.getElementById('saving_overlay').style.display = 'none';
+        showAlert('error', '❌ Server error. Make sure XAMPP is running.');
+    }
+}
+
+// ─────────────────────────────────────────────────────
+// RESET FORM
+// ─────────────────────────────────────────────────────
+function resetForm() {
+    document.querySelectorAll('.form-control').forEach(el => {
+        if (el.tagName === 'SELECT') el.selectedIndex = 0;
+        else el.value = '';
+    });
+    // Clear tags
+    ['lang_box','spec_box'].forEach(boxId => {
+        const box = document.getElementById(boxId);
+        box.querySelectorAll('.tag').forEach(t => t.remove());
+    });
+    document.getElementById('lang_hidden').value = '';
+    document.getElementById('spec_hidden').value = '';
+
+    // Reset training toggle
+    document.getElementById('training_done').checked = false;
+    toggleTraining();
+
+    // Reset same address
+    document.getElementById('same_addr').checked = false;
+    document.getElementById('perm_wrap').style.opacity = '1';
+    document.getElementById('perm_address').readOnly = false;
+
+    // Clear photo
+    const circle = document.getElementById('photo_circle');
+    circle.innerHTML = `
+        <span class="photo-icon"><i class="fas fa-user"></i></span>
+        <div class="photo-overlay"><i class="fas fa-camera"></i></div>`;
+    document.getElementById('photo_file').value = '';
+    document.getElementById('photo_name').style.display = 'none';
+
+    // Clear disciplinary findings
+    document.getElementById('adverse_list').innerHTML = '';
+    document.getElementById('no_adverse').style.display = 'block';
+    advCount = 0;
+
+    // Reset flatpickr dates
+    document.querySelectorAll('.fp').forEach(el => {
+        if (el._flatpickr) el._flatpickr.clear();
+    });
+
+    // Hide success, show nav
+    document.getElementById('success_screen').style.display = 'none';
+    document.getElementById('nav_btns').style.display       = 'flex';
+
+    // Reset steps
+    for (let i = 1; i <= TOTAL; i++) {
+        document.getElementById('card-'     + i).classList.remove('active');
+        document.getElementById('step-dot-' + i).classList.remove('active','done');
+    }
+    curStep = 1;
+    document.getElementById('card-1').classList.add('active');
+    document.getElementById('step-dot-1').classList.add('active');
+    document.getElementById('step_ctr').textContent = `Step 1 of ${TOTAL}`;
+    document.getElementById('btn_prev').style.display = 'none';
+    const nxt     = document.getElementById('btn_next');
+    nxt.innerHTML = 'Next <i class="fas fa-arrow-right"></i>';
+    nxt.className = 'btn btn-next';
+    nxt.onclick   = () => changeStep(1);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────────────────
+// ALERT HELPER
+// ─────────────────────────────────────────────────────
+function showAlert(type, msg) {
+    const box       = document.getElementById('alertBox');
+    box.className   = `alert alert-${type}`;
+    box.textContent = msg;
+    box.style.display = 'block';
+    setTimeout(() => { box.style.display = 'none'; }, 5000);
+}
+
+// ─────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
+// FETCH NEXT EMPLOYEE CODE
+// ─────────────────────────────────────────────────────
+async function fetchEmpCode() {
+    try {
+        const res  = await api.get('employees/next-code');
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('empIdDisplay').textContent = data.emp_code;
+        } else {
+            document.getElementById('empIdDisplay').textContent = 'R1122-?????';
+        }
+    } catch {
+        document.getElementById('empIdDisplay').textContent = 'R1122-????? (server offline)';
+    }
+}
+
+// ─────────────────────────────────────────────────────
+// LOAD ALL DROPDOWNS FROM LARAVEL API
+// ─────────────────────────────────────────────────────
+async function loadFieldsFromAPI() {
+    try {
+        const res  = await api.get('fields');
+        const data = await res.json();
+        const f    = data.fields || {};
+
+        // Helper: fill a <select> from an array of values
+        const fill = (id, arr, firstLabel) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const current = el.value; // preserve any already-set value
+            el.innerHTML  = `<option value="">${firstLabel || 'Select'}</option>`;
+            (arr || []).forEach(v => {
+                const o = document.createElement('option');
+                o.value = v; o.textContent = v;
+                el.appendChild(o);
+            });
+            if (current) el.value = current;
+        };
+
+        // Personal
+        fill('blood_group',    f.blood_group,    'Select');
+        fill('marital_status', f.marital_status,  'Select');
+        fill('religion',       f.religion,        'Select');
+        fill('mother_tongue',  f.mother_tongue,   'Select');
+        fill('domicile',       f.domicile,        'Select District');
+
+        // Employment
+        fill('designation',       f.designation,       'Select Designation');
+        fill('category',          f.category,          'Select');
+        fill('emp_status',        f.emp_status,        'Select');
+        fill('wing',              f.wing,              'Select Wing');
+        fill('station',           f.station,           'Select Station');
+        fill('batch_no',          f.batch_no,          'Select');
+        fill('pay_scale',         f.pay_scale,         'Select BPS Grade');
+        fill('reporting_officer', f.reporting_officer, 'Select');
+
+        // Education
+        fill('education', f.education, 'Select');
+
+        // Documents
+        fill('police_verify',   f.police_verify,   'Select');
+        fill('medical_cert',    f.medical_cert,    'Select');
+
+        // Finance
+        fill('insurance',  f.insurance, 'Select');
+
+        // Custom fields (non-system, type=select) — render in Step 8 review
+        // and also add to a dedicated custom section if any exist
+        const customFields = data.custom_fields || [];
+        if (customFields.length > 0) {
+            renderCustomFieldsInForm(customFields);
+        }
+
+    } catch(e) {
+        console.error('Failed to load field options from API:', e);
+        // Graceful fallback — form still works, just without dynamic options
+    }
+}
+
+// Render custom fields into the Employment step (Step 3) as extra fields
+function renderCustomFieldsInForm(defs) {
+    const selectDefs = defs.filter(d => d.field_type === 'select');
+    if (!selectDefs.length) return;
+
+    // Find the job_desc field and insert custom fields after it
+    const jobDescGroup = document.getElementById('job_desc')?.closest('.form-group')?.parentElement;
+    if (!jobDescGroup) return;
+
+    selectDefs.forEach(async (field) => {
+        // Create form group
+        const div = document.createElement('div');
+        div.className = 'form-row col-1';
+        div.innerHTML = `
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="${field.field_icon || 'fas fa-list'}" style="margin-right:5px"></i>
+                    ${escHtml(field.field_label)}
+                </label>
+                <select class="form-control" id="cf_${field.field_key}" data-custom="1">
+                    <option value="">Select</option>
+                </select>
+            </div>`;
+        jobDescGroup.parentNode.insertBefore(div, jobDescGroup.nextSibling);
+
+        // Load options for this custom select field
+        try {
+            const res  = await api.get(`fields/${field.field_key}/options`);
+            const data = await res.json();
+            const sel  = document.getElementById('cf_' + field.field_key);
+            if (sel) {
+                (data.options || []).filter(o => o.is_active).forEach(o => {
+                    const opt = document.createElement('option');
+                    opt.value = o.field_value;
+                    opt.textContent = o.field_value;
+                    sel.appendChild(opt);
+                });
+            }
+        } catch(e) { /* silent */ }
+    });
+}
+
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initFP();
+    fetchEmpCode();
+    loadFieldsFromAPI();
+});
+</script>
+</body>
+</html>

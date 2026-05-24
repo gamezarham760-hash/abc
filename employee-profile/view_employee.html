@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Employee Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);}
+.tl{display:flex;align-items:center;gap:10px;}
+.logo{width:38px;height:38px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;}
+.tr{display:flex;gap:7px;}
+.btn{padding:7px 14px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-info{background:var(--info);color:#fff;}
+.btn:hover{opacity:.85;}
+.container{max-width:1080px;margin:0 auto;padding:22px 18px;}
+/* PROFILE HEADER */
+.prof-hdr{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:18px;display:flex;align-items:flex-start;gap:24px;position:relative;overflow:hidden;}
+.prof-hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--primary);}
+.av{width:100px;height:100px;border-radius:50%;border:3px solid var(--border);object-fit:cover;background:var(--inp);flex-shrink:0;}
+.av-init{width:100px;height:100px;border-radius:50%;background:var(--primary);color:#fff;font-size:32px;font-weight:700;display:flex;align-items:center;justify-content:center;border:3px solid var(--border);flex-shrink:0;}
+.prof-info{flex:1;}
+.prof-info h2{font-size:22px;color:#fff;font-weight:800;margin-bottom:3px;}
+.prof-sub{font-size:13px;color:var(--muted);margin-bottom:12px;}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+.tag{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+.t-ok{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.t-warn{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.t-red{background:rgba(229,57,53,.2);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.t-info{background:rgba(25,118,210,.2);color:#90caf9;border:1px solid rgba(25,118,210,.3);}
+.t-pri{background:rgba(179,27,27,.2);color:#ffb3b3;border:1px solid rgba(179,27,27,.3);}
+.t-mut{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+.prof-meta{display:flex;gap:20px;flex-wrap:wrap;}
+.pm{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.pm i{color:var(--primary);font-size:11px;}
+.pm strong{color:var(--text);}
+/* TABS */
+.tabs{display:flex;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow-x:auto;margin-bottom:16px;}
+.tab{padding:10px 16px;font-size:11px;font-weight:600;cursor:pointer;transition:.12s;border-right:1px solid var(--border);white-space:nowrap;color:var(--muted);}
+.tab:hover{background:rgba(179,27,27,.07);color:#fff;}
+.tab.active{background:rgba(179,27,27,.14);color:#fff;}
+.tab:last-child{border-right:none;}
+/* INFO SECTIONS */
+.sec{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
+.sec-hd{background:var(--inp);padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.sec-hd i{color:var(--primary);font-size:13px;}
+.sec-hd h4{font-size:13px;color:#fff;font-weight:700;}
+.sec-body{padding:16px;}
+.ig3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.ig2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.ig4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.ii .ik{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;}
+.ii .iv{font-size:13px;color:#fff;word-break:break-word;}
+.iv.na{color:var(--muted);font-style:italic;}
+/* ADVERSE */
+.adv-card{background:rgba(255,167,38,.06);border:1px solid rgba(255,167,38,.25);border-radius:6px;padding:14px;margin-bottom:10px;}
+.adv-hd{display:flex;justify-content:space-between;margin-bottom:10px;}
+.adv-type{font-size:12px;font-weight:700;color:var(--warning);}
+/* TRANSFER */
+.tlist-item{background:var(--inp);border:1px solid var(--border);border-radius:6px;padding:13px 16px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;}
+.t-dot{width:10px;height:10px;border-radius:50%;background:var(--primary);margin-top:4px;flex-shrink:0;}
+/* LEAVE */
+.leave-table{width:100%;border-collapse:collapse;font-size:12px;}
+.leave-table th{padding:8px 12px;background:#051020;color:var(--muted);font-size:10px;text-transform:uppercase;text-align:left;}
+.leave-table td{padding:8px 12px;border-bottom:1px solid #0d2035;}
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-appr{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.b-pend{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.b-rej{background:rgba(229,57,53,.2);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.b-can{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+.doc-badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.db-ok{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.db-pend{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.db-na{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+.empty{text-align:center;padding:36px;color:var(--muted);}
+.empty i{font-size:30px;margin-bottom:10px;display:block;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media print{.topbar,.tabs,.no-print{display:none!important;}.tab-panel{display:block!important;}body{background:#fff!important;color:#000!important;}.sec{border:1px solid #ddd!important;}.sec-hd{background:#b31b1b!important;-webkit-print-color-adjust:exact;}.sec-hd h4,.sec-hd i{color:#fff!important;}.iv,.ik{color:#000!important;}}
+</style>
+</head>
+<body>
+<div class="topbar no-print">
+  <div class="tl"><div class="logo"><i class="fas fa-shield-alt"></i></div><div><strong style="font-size:14px;color:#fff">Employee Profile</strong></div></div>
+  <div class="tr">
+    <button class="btn btn-success" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+    <button class="btn btn-info" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+    <button class="btn btn-primary" onclick="window.location.href='edit_employee.html?id='+empId"><i class="fas fa-pencil-alt"></i> Edit</button>
+    <a href="employee_list.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+  </div>
+</div>
+<div class="container" id="container">
+  <div style="text-align:center;padding:60px;color:var(--muted)"><i class="fas fa-spinner fa-spin" style="font-size:36px;color:var(--primary);display:block;margin-bottom:14px"></i>Loading profile...</div>
+</div>
+<script>
+Auth.requireAuth();
+const empId = parseInt(new URLSearchParams(location.search).get('id')||'0');
+let empData = null;
+if(!empId){document.getElementById('container').innerHTML='<div style="text-align:center;padding:60px;color:#ef9a9a">No employee ID provided.</div>';}
+else load();
+async function load(){
+  try{
+    const res=await api.get(`employees/${empId}`);
+    const data=await res.json();
+    if(!data.success)throw new Error(data.error||'Not found');
+    empData=data.employee;
+    render(empData);
+  }catch(e){document.getElementById('container').innerHTML=`<div style="text-align:center;padding:60px;color:#ef9a9a"><i class="fas fa-exclamation-circle" style="font-size:36px;display:block;margin-bottom:12px"></i>${e.message}</div>`;}
+}
+function v(val){return(val&&String(val).trim())?String(val).trim():null;}
+function vd(val){return v(val)||'<span class="na">—</span>';}
+function statusTag(s){const m={'Active':'t-ok','On Leave':'t-warn',Suspended:'t-red',Terminated:'t-mut',Retired:'t-mut'};return`<span class="tag ${m[s]||'t-mut'}">${s||'—'}</span>`;}
+function docBadge(s){if(!s||s==='—')return'<span class="doc-badge db-na">N/A</span>';if(/available/i.test(s))return`<span class="doc-badge db-ok">${s}</span>`;if(/pending/i.test(s))return`<span class="doc-badge db-pend">${s}</span>`;return`<span class="doc-badge db-na">${s}</span>`;}
+function leaveBadge(s){const m={Approved:'b-appr',Pending:'b-pend',Rejected:'b-rej',Cancelled:'b-can'};return`<span class="badge ${m[s]||'b-can'}">${s}</span>`;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function ii(k,val){return`<div class="ii"><div class="ik">${k}</div><div class="iv">${val||'<span class="na">—</span>'}</div></div>`;}
+function render(e){
+  const initials=(e.full_name||'?').split(' ').map(w=>w[0]).slice(0,2).join('');
+  const disciplinaryCount = (e.disciplinary_findings||[]).length;
+  const transferCount     = (e.transfer_history||[]).length;
+  const leaveCount        = (e.leave_applications||[]).length;
+  const adverseCount      = disciplinaryCount;   // Fixed: Now properly defined
+
+  document.getElementById('container').innerHTML=`
+  <!-- HEADER -->
+  <div class="prof-hdr">
+    ${e.photo
+      ?`<img class="av" src="${PHOTO_BASE}${e.photo}" alt="" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div class=av-init>${initials}</div>')">`
+      :`<div class="av-init">${initials}</div>`}
+    <div class="prof-info">
+      <h2>${esc(e.full_name)}</h2>
+      <div class="prof-sub">${esc(e.designation)||'No designation'} &nbsp;·&nbsp; ${e.emp_code||'No code'}</div>
+      <div class="tags">
+        ${statusTag(e.emp_status)}
+        ${e.wing?`<span class="tag t-mut"><i class="fas fa-layer-group"></i> ${esc(e.wing)}</span>`:''}
+        ${e.station?`<span class="tag t-info"><i class="fas fa-map-marker-alt"></i> ${esc(e.station)}</span>`:''}
+        ${e.pay_scale?`<span class="tag t-pri">${esc(e.pay_scale)}</span>`:''}
+        ${e.category?`<span class="tag t-mut">${esc(e.category)}</span>`:''}
+        ${adverseCount>0?`<span class="tag t-warn"><i class="fas fa-exclamation-triangle"></i> ${adverseCount} Adverse</span>`:''}
+        ${transferCount>0?`<span class="tag t-info"><i class="fas fa-exchange-alt"></i> ${transferCount} Transfer${transferCount>1?'s':''}</span>`:''}
+      </div>
+      <div class="prof-meta">
+        ${e.phone?`<div class="pm"><i class="fas fa-phone"></i><strong>${esc(e.phone)}</strong></div>`:''}
+        ${e.email?`<div class="pm"><i class="fas fa-envelope"></i><strong>${esc(e.email)}</strong></div>`:''}
+        ${e.joining_date?`<div class="pm"><i class="fas fa-calendar"></i><strong>Joined: ${e.joining_date}</strong></div>`:''}
+        ${e.cnic?`<div class="pm"><i class="fas fa-id-card"></i><strong>${esc(e.cnic)}</strong></div>`:''}
+      </div>
+    </div>
+    <div class="no-print" style="font-size:10px;color:var(--muted);text-align:right;flex-shrink:0">Added:<br>${(e.created_at||'').slice(0,10)}</div>
+  </div>
+  <!-- TABS -->
+  <div class="tabs no-print">
+    <div class="tab active" onclick="showTab('personal')">👤 Personal</div>
+    <div class="tab" onclick="showTab('contact')">📞 Contact</div>
+    <div class="tab" onclick="showTab('employment')">💼 Employment</div>
+    <div class="tab" onclick="showTab('education')">🎓 Education</div>
+    <div class="tab" onclick="showTab('documents')">📄 Documents</div>
+    <div class="tab" onclick="showTab('transfers')">🔄 Transfers ${transferCount>0?`<span style="background:var(--info);color:#fff;padding:1px 6px;border-radius:10px;font-size:9px;margin-left:3px">${transferCount}</span>`:''}
+    </div>
+    <div class="tab" onclick="showTab('leaves')">📅 Leaves ${leaveCount>0?`<span style="background:var(--warning);color:#000;padding:1px 6px;border-radius:10px;font-size:9px;margin-left:3px">${leaveCount}</span>`:''}
+    </div>
+    <div class="tab" onclick="showTab('adverse')">⚠️ Disciplinary ${disciplinaryCount>0?`<span style="background:var(--warning);color:#000;padding:1px 6px;border-radius:10px;font-size:9px;margin-left:3px">${disciplinaryCount}</span>`:''}
+    </div>
+  </div>
+  <!-- PERSONAL -->
+  <div class="tab-panel active" id="tab-personal">
+    <div class="sec"><div class="sec-hd"><i class="fas fa-user"></i><h4>Personal Details</h4></div>
+    <div class="sec-body"><div class="ig3">
+      ${ii('Full Name',esc(e.full_name))}${ii("Father's Name",vd(e.father_name))}${ii('CNIC',vd(e.cnic))}
+      ${ii('Date of Birth',vd(e.dob))}${ii('Gender',vd(e.gender))}${ii('Blood Group',vd(e.blood_group))}
+      ${ii('Marital Status',vd(e.marital_status))}${ii('Children',v(e.children)||'0')}${ii('Religion',vd(e.religion))}
+      ${ii('Sect',vd(e.sect))}${ii('Mother Tongue',vd(e.mother_tongue))}${ii('Domicile',vd(e.domicile))}
+    </div>${e.languages?`<div style="margin-top:14px">${ii('Languages Spoken',esc(e.languages))}</div>`:''}</div></div>
+  </div>
+  <!-- CONTACT -->
+  <div class="tab-panel" id="tab-contact">
+    <div class="sec"><div class="sec-hd"><i class="fas fa-phone"></i><h4>Contact Information</h4></div>
+    <div class="sec-body"><div class="ig2">
+      ${ii('Phone',vd(e.phone))}${ii('Email',vd(e.email))}
+      ${ii('Temporary Address',vd(e.temp_address))}${ii('Permanent Address',vd(e.perm_address))}
+      ${ii('Emergency Contact',vd(e.emg_name))}${ii('Emergency Phone',vd(e.emg_phone))}
+    </div></div></div>
+  </div>
+  <!-- EMPLOYMENT -->
+  <div class="tab-panel" id="tab-employment">
+    <div class="sec"><div class="sec-hd"><i class="fas fa-briefcase"></i><h4>Employment Details</h4></div>
+    <div class="sec-body"><div class="ig3">
+      ${ii('Employee Code',vd(e.emp_code))}${ii('Designation',vd(e.designation))}${ii('Category',vd(e.category))}
+      ${ii('Status',statusTag(e.emp_status))}${ii('Wing',vd(e.wing))}${ii('Station',vd(e.station))}${ii('Batch No.',vd(e.batch_no))}
+      ${ii('Pay Scale',vd(e.pay_scale))}${ii('Monthly Pay',e.pay?'PKR '+Number(e.pay).toLocaleString():'—')}${ii('Reporting Officer',vd(e.reporting_officer))}
+      ${ii('Date of Joining',vd(e.joining_date))}${ii('Probation Start',vd(e.prob_start))}${ii('Probation End',vd(e.prob_end))}
+    </div>
+    ${(e.contract_tier||e.contract_number)?`
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="ig4">
+        ${ii('Contract Tier',vd(e.contract_tier))}${ii('Contract No.',vd(e.contract_number))}${ii('Contract Date',vd(e.contract_date))}${ii('Contract Expiry',vd(e.contract_expiry_date))}
+      </div>
+    </div>`:''}
+    </div>${e.job_desc?`<div style="margin-top:14px">${ii('Job Description',esc(e.job_desc))}</div>`:''}</div></div>
+  </div>
+  <!-- EDUCATION -->
+  <div class="tab-panel" id="tab-education">
+    <div class="sec"><div class="sec-hd"><i class="fas fa-graduation-cap"></i><h4>Education & Training</h4></div>
+    <div class="sec-body"><div class="ig2">
+      ${ii('Education',vd(e.education))}${ii('Field of Study',vd(e.field_study))}
+      ${ii('Rescue Training',e.training_done==1?'<span class="badge b-appr">Completed</span>':'<span class="badge b-can">Not Done</span>')}${ii('Training Result',vd(e.training_result))}
+      ${ii('Training Date',vd(e.training_date))}${ii('Training Center',vd(e.training_center))}
+    </div>${e.specializations?`<div style="margin-top:14px">${ii('Specializations',esc(e.specializations))}</div>`:''}</div></div>
+  </div>
+  <!-- DOCUMENTS -->
+  <div class="tab-panel" id="tab-documents">
+    <div class="sec"><div class="sec-hd"><i class="fas fa-file-alt"></i><h4>Documents & Verification</h4></div>
+    <div class="sec-body"><div class="ig2">
+      ${ii('Offer Letter No.',vd(e.offer_no))}${ii('Offer Letter Date',vd(e.offer_date))}
+      ${ii('Appointment Letter No.',vd(e.appt_no))}${ii('Appointment Date',vd(e.appt_date))}
+      ${ii('Acceptance Date',vd(e.acceptance_date))}${ii('Police Verification Date',vd(e.police_date))}
+    </div>
+    <div class="ig4" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      ${ii('Police Verification',docBadge(e.police_verify))}
+      ${ii('Medical Certificate',docBadge(e.medical_cert))}
+      ${ii('Medical Cert. Date',vd(e.medical_cert_date))}
+      ${ii('Insurance Plan',vd(e.insurance))}
+    </div></div></div>
+  </div>
+  <!-- TRANSFERS -->
+  <div class="tab-panel" id="tab-transfers">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h4 style="color:#fff;font-size:14px"><i class="fas fa-exchange-alt" style="color:var(--primary);margin-right:7px"></i>Transfer & Posting History</h4>
+      <a href="transfer_history.html" class="btn btn-back" style="font-size:11px;padding:5px 11px"><i class="fas fa-plus"></i> Add Transfer</a>
+    </div>
+    ${(e.transfer_history||[]).length===0
+      ?`<div class="empty"><i class="fas fa-exchange-alt"></i>No transfer records on file.</div>`
+      :(e.transfer_history||[]).map((t,i)=>`
+        <div class="tlist-item">
+          <div class="t-dot"></div>
+          <div>
+            <div style="font-size:12px;color:#fff;font-weight:700;margin-bottom:4px">
+              <span style="background:rgba(25,118,210,.2);color:#90caf9;border:1px solid rgba(25,118,210,.3);padding:2px 9px;border-radius:20px;font-size:10px;margin-right:7px">${t.transfer_type}</span>
+              ${esc(t.from_station||'N/A')} → <strong>${esc(t.to_station||'N/A')}</strong>
+              ${t.from_designation!==t.to_designation&&t.to_designation?`<span style="color:var(--muted);font-size:11px"> · ${esc(t.to_designation)}</span>`:''}
+            </div>
+            ${t.order_no?`<div style="font-size:11px;color:var(--muted)">Order: ${esc(t.order_no)}${t.order_date?' | '+t.order_date:''}</div>`:''}
+            ${t.reason?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${esc(t.reason)}</div>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--muted);text-align:right;white-space:nowrap">
+            ${t.effective_date?`<strong style="color:#fff">${t.effective_date}</strong><br>`:''}Effective Date
+          </div>
+        </div>`).join('')}
+  </div>
+  <!-- LEAVES -->
+  <div class="tab-panel" id="tab-leaves">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h4 style="color:#fff;font-size:14px"><i class="fas fa-calendar-alt" style="color:var(--primary);margin-right:7px"></i>Leave Applications</h4>
+      <a href="leave_management.html" class="btn btn-back" style="font-size:11px;padding:5px 11px"><i class="fas fa-plus"></i> Apply Leave</a>
+    </div>
+    ${(e.leave_applications||[]).length===0
+      ?`<div class="empty"><i class="fas fa-calendar-check"></i>No leave applications on record.</div>`
+      :`<table class="leave-table"><thead><tr><th>#</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th></tr></thead><tbody>
+        ${(e.leave_applications||[]).map((l,i)=>`
+          <tr><td>${i+1}</td><td>${esc(l.leave_type_name||'—')}</td>
+          <td>${l.from_date||'—'}</td><td>${l.to_date||'—'}</td>
+          <td><strong style="color:var(--primary)">${l.days}</strong></td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${esc(l.reason||'—')}</td>
+          <td>${leaveBadge(l.status)}</td></tr>`).join('')}
+        </tbody></table>`}
+  </div>
+  <!-- DISCIPLINARY FINDINGS -->
+  <div class="tab-panel" id="tab-adverse">
+    ${(e.disciplinary_findings||[]).length===0
+      ?`<div class="empty" style="background:var(--card);border:1px solid var(--border);border-radius:8px"><i class="fas fa-check-circle" style="color:var(--success)"></i>Clean Record — No disciplinary findings.</div>`
+      :(e.disciplinary_findings||[]).map((a,i)=>`
+        <div class="adv-card">
+          <div class="adv-hd"><span class="adv-type"><i class="fas fa-exclamation-triangle"></i> Entry #${i+1} — ${esc(a.entry_type||'Disciplinary')}</span><span style="font-size:11px;color:var(--muted)">${a.entry_date||'—'}</span></div>
+          <div class="ig2">
+            ${ii('Details',vd(a.details))}${ii('Employee Reply',vd(a.emp_reply))}
+            ${ii('Reply Date',vd(a.reply_date))}
+            <div class="ii"><div class="ik">Management Decision</div><div class="iv">
+              ${a.mgmt_action==='Accepted'?'<span class="badge b-appr">✅ Accepted</span>':a.mgmt_action==='Rejected'?'<span class="badge b-rej">❌ Rejected</span>':'<span class="badge b-pend">⏳ Pending</span>'}
+            </div></div>
+            ${a.reason?ii('Reason',vd(a.reason)):''}
+          </div>
+        </div>`).join('')}
+  </div>
+  `;
+}
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const panel=document.getElementById('tab-'+name);
+  if(panel)panel.classList.add('active');
+  const tabs=document.querySelectorAll('.tab');
+  const order=['personal','contact','employment','education','documents','transfers','leaves','adverse'];
+  const idx=order.indexOf(name);
+  if(tabs[idx])tabs[idx].classList.add('active');
+}
+async function exportPDF(){
+  if(!empData)return;
+  const e=empData;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  doc.setFillColor(179,27,27);doc.rect(0,0,210,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text('RESCUE 1122 — EMPLOYEE PROFILE',14,14);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text(`Generated: ${new Date().toLocaleString('en-PK')}`,196,14,{align:'right'});
+  let y=30;
+  doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(20,40,80);doc.text(e.full_name||'',14,y);y+=7;
+  doc.setFontSize(10);doc.setFont('helvetica','normal');doc.setTextColor(107,143,168);
+  doc.text(`${e.designation||''} · ${e.emp_code||''} · Status: ${e.emp_status||''}`,14,y);y+=12;
+  const sections=[
+    ['Personal',[['Full Name',e.full_name],['Father Name',e.father_name],['CNIC',e.cnic],['DOB',e.dob],['Gender',e.gender],['Blood Group',e.blood_group],['Marital Status',e.marital_status],['Religion',e.religion],['Domicile',e.domicile]]],
+    ['Employment',[['Designation',e.designation],['Category',e.category],['Status',e.emp_status],['Wing',e.wing],['Station',e.station],['Pay Scale',e.pay_scale],['Monthly Pay',e.pay?'PKR '+Number(e.pay).toLocaleString():''],['Joining Date',e.joining_date],['Batch No.',e.batch_no],['Reporting Officer',e.reporting_officer],['Contract Tier',e.contract_tier],['Contract No.',e.contract_number],['Contract Date',e.contract_date],['Contract Expiry',e.contract_expiry_date]]],
+    ['Contact',[['Phone',e.phone],['Email',e.email],['Temp Address',e.temp_address],['Perm Address',e.perm_address],['Emergency Contact',e.emg_name],['Emergency Phone',e.emg_phone]]],
+    ['Documents',[['Police Verification',e.police_verify],['Police Date',e.police_date],['Medical Certificate',e.medical_cert],['Medical Cert. Date',e.medical_cert_date],['Insurance',e.insurance],['Offer Letter',e.offer_no],['Appointment',e.appt_no],['Acceptance Date',e.acceptance_date]]],
+  ];
+  sections.forEach(([title,rows])=>{
+    if(y>262){doc.addPage();y=20;}
+    doc.autoTable({startY:y,head:[[title,'']],body:rows.filter(r=>r[1]).map(r=>[r[0],r[1]||'—']),
+      headStyles:{fillColor:[179,27,27],textColor:255,fontStyle:'bold',fontSize:9},
+      bodyStyles:{fontSize:8,textColor:[30,60,100]},alternateRowStyles:{fillColor:[248,250,252]},
+      columnStyles:{0:{cellWidth:55,fontStyle:'bold',textColor:[107,143,168]}},
+      margin:{left:14,right:14},tableWidth:182,styles:{cellPadding:3}});
+    y=doc.lastAutoTable.finalY+8;
+  });
+  doc.save(`${e.full_name||'Employee'}_Profile.pdf`);
+}
+</script>
+</body>
+</html>

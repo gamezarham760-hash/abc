@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Transfer & Posting History</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);}
+.tl{display:flex;align-items:center;gap:10px;}
+.logo{width:38px;height:38px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;}
+.topbar h1{font-size:15px;color:#fff;}
+.tr{display:flex;gap:8px;}
+.btn{padding:8px 15px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-danger{background:rgba(229,57,53,.15);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.btn:hover{opacity:.85;}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px);}
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-sect{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 14px 6px;margin-top:14px;}
+.sb-sect:first-child{margin-top:0;}
+.nav-item{padding:8px 14px;display:flex;align-items:center;gap:9px;font-size:12px;cursor:pointer;border-left:3px solid transparent;transition:.12s;text-decoration:none;color:var(--text);}
+.nav-item:hover{background:rgba(179,27,27,.07);color:#fff;}
+.nav-item.active{background:rgba(179,27,27,.12);color:#fff;border-left-color:var(--primary);font-weight:700;}
+.nav-item i{width:14px;color:var(--muted);font-size:12px;}
+.nav-item.active i{color:var(--primary);}
+.main{padding:20px 24px;}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.ph h2{font-size:18px;color:#fff;font-weight:800;}
+/* FORM */
+.form-sec{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px;}
+.form-sec h4{font-size:13px;color:#fff;margin-bottom:16px;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.finp{width:100%;padding:9px 12px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--text);font-family:'Nunito Sans',sans-serif;}
+.finp:focus{outline:none;border-color:var(--primary);}
+.finp::placeholder{color:#2a4a6a;}
+select.finp option{background:#0a1624;}
+textarea.finp{resize:vertical;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+/* TABLE */
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.tcard-hd{background:var(--inp);padding:11px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.tcard-hd h4{font-size:13px;color:#fff;}
+.tcard-hd span{font-size:11px;color:var(--muted);}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.fc{padding:8px 11px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text);font-family:'Nunito Sans',sans-serif;}
+.fc:focus{outline:none;border-color:var(--primary);}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:9px 13px;background:#051020;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap;}
+td{padding:9px 13px;border-bottom:1px solid #0d2035;color:var(--text);}
+tr:hover td{background:rgba(179,27,27,.03);}
+.badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-transfer{background:rgba(25,118,210,.2);color:#90caf9;border:1px solid rgba(25,118,210,.3);}
+.b-posting{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.b-deput{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.b-promo{background:rgba(156,39,176,.2);color:#ce93d8;border:1px solid rgba(156,39,176,.3);}
+.b-rep{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+.alert{padding:10px 14px;border-radius:5px;font-size:12px;margin-bottom:14px;display:none;}
+.al-s{background:rgba(67,160,71,.15);border:1px solid var(--success);color:#81c784;}
+.al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+.flatpickr-calendar{background:#0c1e2e!important;border:1px solid #1e3a5f!important;}
+.flatpickr-day{color:#c0d4e8!important;}.flatpickr-day:hover{background:#1e3a5f!important;}
+.flatpickr-day.selected{background:#b31b1b!important;border-color:#b31b1b!important;color:#fff!important;}
+.flatpickr-months,.flatpickr-weekdays{background:#0a1624!important;}
+.flatpickr-current-month,.flatpickr-weekday{color:#c0d4e8!important;fill:#c0d4e8!important;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tl"><div class="logo"><i class="fas fa-shield-alt"></i></div><div><h1>Rescue 1122 — Transfer & Posting History</h1></div></div>
+  <div class="tr"><a href="admin.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a></div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-sect">Main</div>
+    <a href="admin.html" class="nav-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-users"></i> Employees</a>
+    <div class="sb-sect">HR Operations</div>
+    <a href="attendance.html" class="nav-item"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="payroll.html" class="nav-item"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+    <a href="transfer_history.html" class="nav-item active"><i class="fas fa-exchange-alt"></i> Transfers</a>
+    <a href="leave_management.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Leave Management</a>
+    <a href="field_manager.html" class="nav-item"><i class="fas fa-sliders-h"></i> Field Manager</a>
+  </div>
+
+  <div class="main">
+    <div id="alertBox" class="alert"></div>
+    <div class="ph"><div><h2><i class="fas fa-exchange-alt" style="color:var(--primary);margin-right:8px"></i>Transfer & Posting Records</h2></div></div>
+
+    <!-- ADD FORM -->
+    <div class="form-sec">
+      <h4><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:7px"></i>Record New Transfer / Posting</h4>
+      <div id="formAlert" class="alert"></div>
+      <div class="g3" style="margin-bottom:0">
+        <div class="fg"><label class="lbl">Employee *</label><select class="finp" id="t-emp"><option value="">Select Employee</option></select></div>
+        <div class="fg"><label class="lbl">Type *</label>
+          <select class="finp" id="t-type">
+            <option value="Transfer">Transfer</option><option value="Posting">Posting</option>
+            <option value="Deputation">Deputation</option><option value="Repatriation">Repatriation</option>
+            <option value="Promotion">Promotion</option>
+          </select></div>
+        <div class="fg"><label class="lbl">Order No.</label><input type="text" class="finp" id="t-orderno" placeholder="e.g. HRM/2024/001"></div>
+      </div>
+      <div class="g2" style="margin-top:14px">
+        <div class="fg"><label class="lbl">From Station</label><select class="finp" id="t-from-station"><option value="">Select</option></select></div>
+        <div class="fg"><label class="lbl">To Station *</label><select class="finp" id="t-to-station"><option value="">Select</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">From Designation</label><select class="finp" id="t-from-desig"><option value="">Same as current</option></select></div>
+        <div class="fg"><label class="lbl">To Designation</label><select class="finp" id="t-to-desig"><option value="">Same as current</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label class="lbl">Order Date</label><input type="text" class="finp fp" id="t-orderdate" placeholder="DD-MM-YYYY" readonly></div>
+        <div class="fg"><label class="lbl">Effective Date *</label><input type="text" class="finp fp" id="t-effdate" placeholder="DD-MM-YYYY" readonly></div>
+      </div>
+      <div class="fg"><label class="lbl">Reason</label><textarea class="finp" id="t-reason" rows="2" placeholder="Reason for transfer/posting..."></textarea></div>
+      <div class="fg"><label class="lbl">Remarks</label><textarea class="finp" id="t-remarks" rows="2" placeholder="Additional remarks..."></textarea></div>
+      <input type="hidden" id="t-id">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
+        <button class="btn btn-back" onclick="resetForm()">Clear</button>
+        <button class="btn btn-success" onclick="saveTransfer()"><i class="fas fa-save"></i> Save Record</button>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div class="filters">
+      <select class="fc" id="f-type" onchange="loadAll()"><option value="">All Types</option><option>Transfer</option><option>Posting</option><option>Deputation</option><option>Repatriation</option><option>Promotion</option></select>
+      <input type="text" class="fc" id="f-search" placeholder="Search employee..." oninput="filterList()">
+    </div>
+    <div class="tcard">
+      <div class="tcard-hd"><h4>Transfer History</h4><span id="listCount"></span></div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>#</th><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Order No.</th><th>Effective Date</th><th>Reason</th><th>Actions</th></tr></thead>
+        <tbody id="listTbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)"><i class="fas fa-spinner fa-spin"></i></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+Auth.requireAuth();
+async function logout(){try{await api.post('logout');}catch{}Auth.clearToken();window.location.href='index.html';}
+let allRecords=[], allEmps=[], fieldOptions={};
+
+async function init(){
+  flatpickr('.fp',{dateFormat:'d-m-Y',allowInput:false,disableMobile:true});
+  await Promise.all([loadEmployees(),loadFields(),loadAll()]);
+}
+
+async function loadEmployees(){
+  try{
+    const res=await api.get('employees',{limit:9999,page:1});
+    const d=await res.json();
+    allEmps=d.employees||[];
+    const sel=document.getElementById('t-emp');
+    sel.innerHTML='<option value="">Select Employee</option>';
+    allEmps.forEach(e=>sel.innerHTML+=`<option value="${e.id}">${esc(e.full_name)} — ${e.emp_code||''} (${e.station||'N/A'})</option>`);
+  }catch{}
+}
+
+async function loadFields(){
+  try{
+    const res=await api.get('fields');
+    const d=await res.json();
+    fieldOptions=d.fields||{};
+    fillSelect('t-from-station',fieldOptions.station||[]);
+    fillSelect('t-to-station',fieldOptions.station||[]);
+    fillSelect('t-from-desig',fieldOptions.designation||[]);
+    fillSelect('t-to-desig',fieldOptions.designation||[]);
+  }catch{}
+}
+function fillSelect(id,arr){const el=document.getElementById(id);const first=el.options[0];el.innerHTML='';el.appendChild(first);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o);});}
+
+async function loadAll(){
+  try{
+    const type=document.getElementById('f-type').value;
+    // Get all employees transfers via individual endpoint isn't ideal but works
+    // For a full list we'd need a global endpoint; for now fetch all
+    const res=await api.get('transfers');
+    const d=await res.json();
+    allRecords=[];
+    (d.transfers||[]).forEach(t=>{
+      t._emp=allEmps.find(e=>e.id===t.employee_id)||{full_name:'Unknown',emp_code:''};
+      allRecords.push(t);
+    });
+    allRecords.sort((a,b)=>new Date(b.effective_date||b.created_at)-new Date(a.effective_date||a.created_at));
+    const filtered=type?allRecords.filter(r=>r.transfer_type===type):allRecords;
+    renderList(filtered);
+    document.getElementById('listCount').textContent=filtered.length+' records';
+  }catch(e){console.error(e);}
+}
+
+function renderList(records){
+  if(!records.length){document.getElementById('listTbody').innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">No transfer records found.</td></tr>';return;}
+  document.getElementById('listTbody').innerHTML=records.map((r,i)=>`
+    <tr><td>${i+1}</td>
+    <td><strong style="color:#fff">${esc(r._emp?.full_name||'—')}</strong><br><small style="color:var(--muted)">${r._emp?.emp_code||''}</small></td>
+    <td>${typeBadge(r.transfer_type)}</td>
+    <td>${esc(r.from_station||'—')}</td>
+    <td><strong style="color:#fff">${esc(r.to_station||'—')}</strong></td>
+    <td>${esc(r.order_no||'—')}</td>
+    <td>${r.effective_date||'—'}</td>
+    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${esc(r.reason||'—')}</td>
+    <td>
+      <button class="btn btn-back btn-sm" onclick="editRecord(${r.id},${r.employee_id})" title="Edit"><i class="fas fa-edit"></i></button>
+      <button class="btn btn-danger btn-sm" onclick="deleteRecord(${r.id})" title="Delete"><i class="fas fa-trash"></i></button>
+    </td></tr>`).join('');
+}
+function typeBadge(t){const m={Transfer:'b-transfer',Posting:'b-posting',Deputation:'b-deput',Promotion:'b-promo',Repatriation:'b-rep'};return`<span class="badge ${m[t]||'b-rep'}">${t}</span>`;}
+function filterList(){const q=document.getElementById('f-search').value.toLowerCase();renderList(q?allRecords.filter(r=>(r._emp?.full_name||'').toLowerCase().includes(q)):allRecords);}
+
+function editRecord(id, empId){
+  const rec = allRecords.find(r => r.id == id);
+  if(!rec) return;
+  document.getElementById('t-id').value       = id;
+  document.getElementById('t-emp').value       = empId;
+  document.getElementById('t-type').value      = rec.transfer_type || 'Transfer';
+  document.getElementById('t-orderno').value   = rec.order_no || '';
+  // ✅ Remove the broken setFP line entirely — the line below is sufficient:
+  document.getElementById('t-from-station').value = rec.from_station || '';
+  document.getElementById('t-to-station').value   = rec.to_station   || '';
+  document.getElementById('t-from-desig').value   = rec.from_designation || '';
+  document.getElementById('t-to-desig').value     = rec.to_designation  || '';
+  if(rec.order_date    && document.getElementById('t-orderdate')._flatpickr)
+    document.getElementById('t-orderdate')._flatpickr.setDate(rec.order_date);
+  if(rec.effective_date && document.getElementById('t-effdate')._flatpickr)
+    document.getElementById('t-effdate')._flatpickr.setDate(rec.effective_date);
+  document.getElementById('t-reason').value  = rec.reason  || '';
+  document.getElementById('t-remarks').value = rec.remarks || '';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+// ⚠️ setFP2 has been removed because it is never used (per bug report)
+
+async function saveTransfer(){
+  const id=document.getElementById('t-id').value;
+  const empId=document.getElementById('t-emp').value;
+  const toStation=document.getElementById('t-to-station').value;
+  if(!empId||!toStation){showInline('formAlert','Employee and To Station are required.');return;}
+  const payload={
+    employee_id:empId,
+    transfer_type:document.getElementById('t-type').value,
+    from_station:document.getElementById('t-from-station').value,
+    to_station:toStation,
+    from_designation:document.getElementById('t-from-desig').value,
+    to_designation:document.getElementById('t-to-desig').value,
+    order_no:document.getElementById('t-orderno').value,
+    order_date:document.getElementById('t-orderdate').value,
+    effective_date:document.getElementById('t-effdate').value,
+    reason:document.getElementById('t-reason').value,
+    remarks:document.getElementById('t-remarks').value,
+  };
+  try{
+    const res=await (id ? api.put(`transfers/${id}`,payload) : api.post('transfers',payload));
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Transfer record saved.');resetForm();await loadAll();}
+    else showInline('formAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('formAlert','❌ Server error.');}
+}
+
+async function deleteRecord(id){
+  if(!confirm('Delete this transfer record?'))return;
+  try{
+    const res=await api.delete(`transfers/${id}`);
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Record deleted.');loadAll();}
+    else showAlert('e','❌ '+(d.error||'Failed.'));
+  }catch{showAlert('e','❌ Server error.');}
+}
+
+function resetForm(){['t-id','t-orderno','t-reason','t-remarks'].forEach(id=>document.getElementById(id).value='');['t-emp','t-type','t-from-station','t-to-station','t-from-desig','t-to-desig'].forEach(id=>document.getElementById(id).selectedIndex=0);['t-orderdate','t-effdate'].forEach(id=>{if(document.getElementById(id)._flatpickr)document.getElementById(id)._flatpickr.clear();});document.getElementById('formAlert').style.display='none';}
+function showAlert(t,m){const b=document.getElementById('alertBox');b.className='alert '+(t==='s'?'al-s':'al-e');b.textContent=m;b.style.display='block';if(t==='s')setTimeout(()=>b.style.display='none',4000);}
+function showInline(id,m){const b=document.getElementById(id);b.className='alert al-e';b.textContent=m;b.style.display='block';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+init();
+</script>
+</body>
+</html>

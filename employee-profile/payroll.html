@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rescue 1122 — Payroll Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--primary:#b31b1b;--text:#c0d4e8;--bg:#0b1a2a;--card:#0c1e2e;--inp:#0a1624;--border:#1e3a5f;--success:#43a047;--warning:#ffa726;--info:#1976d2;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);}
+.topbar{background:var(--card);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--primary);position:sticky;top:0;z-index:100;}
+.tl{display:flex;align-items:center;gap:12px;}
+.logo{width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.topbar h1{font-size:16px;color:#fff;}
+.tr{display:flex;align-items:center;gap:8px;}
+.btn{padding:8px 15px;border-radius:5px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-family:'Nunito Sans',sans-serif;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-success{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.btn-info{background:rgba(25,118,210,.2);color:#90caf9;border:1px solid rgba(25,118,210,.3);}
+.btn-warning{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.btn-danger{background:rgba(229,57,53,.15);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.btn-back{background:var(--inp);color:var(--text);border:1px solid var(--border);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn:hover{opacity:.85;}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px);}
+/* SIDEBAR */
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:18px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-sect{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 14px 6px;margin-top:14px;}
+.sb-sect:first-child{margin-top:0;}
+.nav-item{padding:9px 14px;display:flex;align-items:center;gap:9px;font-size:12px;cursor:pointer;border-left:3px solid transparent;transition:.12s;text-decoration:none;color:var(--text);}
+.nav-item:hover{background:rgba(179,27,27,.07);color:#fff;}
+.nav-item.active{background:rgba(179,27,27,.12);color:#fff;border-left-color:var(--primary);font-weight:700;}
+.nav-item i{width:16px;color:var(--muted);font-size:12px;}
+.nav-item.active i{color:var(--primary);}
+/* MAIN */
+.main{padding:22px 26px;}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.ph h2{font-size:20px;color:#fff;margin-bottom:3px;font-weight:800;}
+.ph p{font-size:12px;color:var(--muted);}
+/* TABS */
+.tabs{display:flex;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow-x:auto;margin-bottom:18px;}
+.tab{padding:10px 18px;font-size:12px;font-weight:600;cursor:pointer;transition:.12s;border-right:1px solid var(--border);white-space:nowrap;color:var(--muted);}
+.tab:hover{background:rgba(179,27,27,.07);color:#fff;}
+.tab.active{background:rgba(179,27,27,.14);color:#fff;}
+.tab:last-child{border-right:none;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+/* STATS */
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;transition:.2s;}
+.scard:hover{border-color:var(--primary);transform:translateY(-2px);}
+.scard-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:10px;}
+.si1{background:rgba(67,160,71,.15);color:#81c784;}
+.si2{background:rgba(25,118,210,.15);color:#64b5f6;}
+.si3{background:rgba(255,167,38,.15);color:var(--warning);}
+.si4{background:rgba(179,27,27,.15);color:#ef9a9a;}
+.scard-num{font-size:26px;font-weight:800;color:#fff;line-height:1;}
+.scard-lbl{font-size:10px;color:var(--muted);margin-top:4px;}
+/* CARDS */
+.cc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;}
+.cc-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.cc-hd h4{font-size:13px;color:#fff;font-weight:700;}
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.req{color:var(--primary);}
+.fc{width:100%;padding:9px 12px;background:var(--inp);border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--text);font-family:'Nunito Sans',sans-serif;outline:none;transition:.15s;}
+.fc:focus{border-color:var(--primary);}
+.fc::placeholder{color:#2a4a6a;}
+select.fc option{background:#0a1624;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:9px 12px;background:#051020;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;white-space:nowrap;}
+td{padding:9px 12px;border-bottom:1px solid #0d2035;color:var(--text);}
+tr:hover td{background:rgba(179,27,27,.03);}
+/* BADGES */
+.badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-draft{background:rgba(107,143,168,.2);color:var(--muted);border:1px solid rgba(107,143,168,.3);}
+.b-final{background:rgba(25,118,210,.2);color:#90caf9;border:1px solid rgba(25,118,210,.3);}
+.b-paid{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+.b-processing{background:rgba(255,167,38,.2);color:var(--warning);border:1px solid rgba(255,167,38,.3);}
+.b-hold{background:rgba(229,57,53,.2);color:#ef9a9a;border:1px solid rgba(229,57,53,.3);}
+.b-approved{background:rgba(67,160,71,.2);color:#81c784;border:1px solid rgba(67,160,71,.3);}
+/* ALERTS */
+.alert{padding:10px 14px;border-radius:5px;font-size:12px;margin-bottom:14px;display:none;}
+.al-s{background:rgba(67,160,71,.15);border:1px solid var(--success);color:#81c784;}
+.al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:999;}
+.mo.open{display:flex;}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:10px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.5);}
+.mbox-wide{width:900px;}
+.mhd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--card);z-index:1;}
+.mhd h3{font-size:14px;color:#fff;font-weight:700;}
+.mcl{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.mbody{padding:18px;}
+.mfoo{padding:13px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--card);}
+/* SECTION DIVIDER */
+.sec-div{font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px;}
+/* PAYSLIP STYLES */
+.payslip-wrap{background:#fff;color:#111;padding:30px;border-radius:6px;font-size:12px;line-height:1.6;}
+.payslip-header{background:#b31b1b;color:#fff;padding:16px 20px;border-radius:4px 4px 0 0;display:flex;justify-content:space-between;align-items:center;margin:-30px -30px 20px;}
+.payslip-header h2{font-size:16px;margin:0;}
+.payslip-header p{font-size:10px;opacity:.8;margin:0;}
+.payslip-emp{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;background:#f5f7fa;padding:12px 16px;border-radius:4px;margin-bottom:16px;}
+.payslip-emp div{font-size:11px;}
+.payslip-emp strong{color:#111;}
+.pay-table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.pay-table th{background:#b31b1b;color:#fff;padding:7px 10px;font-size:11px;text-align:left;}
+.pay-table td{padding:6px 10px;border-bottom:1px solid #eee;font-size:11px;}
+.pay-table tr:nth-child(even) td{background:#f9f9f9;}
+.pay-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;}
+.pay-sum-card{background:#f5f7fa;border-radius:4px;padding:12px;text-align:center;}
+.pay-sum-card .label{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.5px;}
+.pay-sum-card .amount{font-size:18px;font-weight:800;color:#b31b1b;margin-top:4px;}
+.in-words{background:#fff8e1;border:1px solid #ffd54f;border-radius:4px;padding:10px 14px;font-size:11px;margin-top:14px;}
+.payslip-footer{text-align:center;font-size:10px;color:#999;margin-top:20px;padding-top:14px;border-top:1px dashed #ddd;}
+/* SALARY FORM SECTIONS */
+.sal-section{background:var(--inp);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px;}
+.sal-section-title{font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.sal-total{background:rgba(179,27,27,.08);border:1px solid rgba(179,27,27,.2);border-radius:6px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+.sal-total span{font-size:11px;color:var(--muted);}
+.sal-total strong{font-size:16px;color:#fff;}
+.preview-card{background:rgba(25,118,210,.06);border:1px solid rgba(25,118,210,.2);border-radius:6px;padding:12px 16px;margin-bottom:14px;}
+.preview-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;}
+.preview-row span{color:var(--muted);}
+.preview-row strong{color:#fff;}
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+/* PAGINATION */
+.pag{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--border);margin-top:8px;}
+.pag-info{font-size:11px;color:var(--muted);}
+/* EMPTY */
+.empty{text-align:center;padding:40px;color:var(--muted);}
+.empty i{font-size:32px;margin-bottom:10px;display:block;}
+/* GENERATE WIZARD */
+.gen-card{background:var(--inp);border:1px solid var(--border);border-radius:8px;padding:20px;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media print{
+  .topbar,.sidebar,.tabs,.btn,.no-print{display:none!important;}
+  .layout{grid-template-columns:1fr!important;}
+  .main{padding:0!important;}
+  .payslip-wrap{box-shadow:none!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tl">
+    <div class="logo"><i class="fas fa-shield-alt"></i></div>
+    <div><h1>Rescue 1122 &nbsp;<span style="font-weight:400;color:var(--muted);font-size:13px">HRM</span></h1></div>
+  </div>
+  <div class="tr">
+    <div style="background:var(--inp);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:8px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--success)"></div><span>Admin</span>
+    </div>
+    <a href="admin.html" class="btn btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <a href="#" class="btn btn-back" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-sect">Main</div>
+    <a href="admin.html" class="nav-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a href="employee_list.html" class="nav-item"><i class="fas fa-users"></i> Employees</a>
+    <div class="sb-sect">HR Operations</div>
+    <a href="add_employee_1122.html" class="nav-item"><i class="fas fa-user-plus"></i> Add Employee</a>
+    <a href="attendance.html" class="nav-item"><i class="fas fa-calendar-check"></i> Attendance</a>
+    <a href="payroll.html" class="nav-item active"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+    <a href="leave_management.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Leave Management</a>
+    <a href="transfer_history.html" class="nav-item"><i class="fas fa-exchange-alt"></i> Transfers & Postings</a>
+    <a href="bulk_import.html" class="nav-item"><i class="fas fa-file-import"></i> Bulk Import</a>
+    <div class="sb-sect">Administration</div>
+    <a href="field_manager.html" class="nav-item"><i class="fas fa-sliders-h"></i> Field Manager</a>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="ph">
+      <div><h2>Payroll Management</h2><p>Generate payroll, manage salary structures & print payslips</p></div>
+      <button class="btn btn-primary" onclick="showTab('generate')"><i class="fas fa-play-circle"></i> Generate Payroll</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats4" id="statsRow">
+      <div class="scard"><div class="scard-icon si1"><i class="fas fa-money-check-alt"></i></div><div class="scard-num" id="st-net">—</div><div class="scard-lbl">Latest Net Payroll (PKR)</div></div>
+      <div class="scard"><div class="scard-icon si2"><i class="fas fa-users"></i></div><div class="scard-num" id="st-emps">—</div><div class="scard-lbl">Employees in Last Run</div></div>
+      <div class="scard"><div class="scard-icon si3"><i class="fas fa-file-invoice-dollar"></i></div><div class="scard-num" id="st-runs">—</div><div class="scard-lbl">Total Payroll Runs</div></div>
+      <div class="scard"><div class="scard-icon si4"><i class="fas fa-exclamation-triangle"></i></div><div class="scard-num" id="st-nostr">—</div><div class="scard-lbl">Employees Without Structure</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active"  id="tab-runs"       onclick="showTab('runs')"><i class="fas fa-list"></i> Payroll Runs</div>
+      <div class="tab"         id="tab-structures"  onclick="showTab('structures')"><i class="fas fa-sliders-h"></i> Salary Structures</div>
+      <div class="tab"         id="tab-generate"    onclick="showTab('generate')"><i class="fas fa-play-circle"></i> Generate New</div>
+      <div class="tab"         id="tab-components"  onclick="showTab('components')"><i class="fas fa-puzzle-piece"></i> Components</div>
+    </div>
+
+    <!-- ═══ TAB: PAYROLL RUNS ═══ -->
+    <div class="tab-panel active" id="panel-runs">
+      <div class="cc">
+        <div class="cc-hd">
+          <h4><i class="fas fa-list" style="color:var(--primary);margin-right:6px"></i>All Payroll Runs</h4>
+          <span id="runsCount" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Period</th><th>Employees</th>
+              <th>Gross (PKR)</th><th>Deductions (PKR)</th><th>Net Pay (PKR)</th>
+              <th>Status</th><th>Generated</th><th class="no-print">Actions</th>
+            </tr></thead>
+            <tbody id="runsTbody">
+              <tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: SALARY STRUCTURES ═══ -->
+    <div class="tab-panel" id="panel-structures">
+      <div class="filters">
+        <input type="text" class="fc" style="width:220px" id="str-search" placeholder="Search employee…" oninput="loadStructures()">
+        <select class="fc" id="str-station" onchange="loadStructures()"><option value="">All Stations</option></select>
+      </div>
+      <div class="cc">
+        <div class="cc-hd">
+          <h4><i class="fas fa-sliders-h" style="color:var(--primary);margin-right:6px"></i>Employee Salary Structures</h4>
+          <span id="strCount" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>Employee</th><th>Designation</th><th>Station</th><th>Pay Scale</th>
+              <th>Basic (PKR)</th><th>Gross (PKR)</th><th>Net (PKR)</th>
+              <th>Effective</th><th>Structure</th><th class="no-print">Action</th>
+            </tr></thead>
+            <tbody id="strTbody">
+              <tr><td colspan="10" class="empty"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: GENERATE ═══ -->
+    <div class="tab-panel" id="panel-generate">
+      <div class="gen-card">
+        <div style="font-size:15px;color:#fff;font-weight:700;margin-bottom:18px">
+          <i class="fas fa-play-circle" style="color:var(--primary);margin-right:8px"></i>Generate Monthly Payroll
+        </div>
+        <div id="genAlert" class="alert"></div>
+        <div class="g3">
+          <div class="fg">
+            <label class="lbl">Month <span class="req">*</span></label>
+            <select class="fc" id="gen-month"></select>
+          </div>
+          <div class="fg">
+            <label class="lbl">Year <span class="req">*</span></label>
+            <select class="fc" id="gen-year"></select>
+          </div>
+          <div class="fg">
+            <label class="lbl">Working Days <span class="req">*</span></label>
+            <input type="number" class="fc" id="gen-wdays" value="26" min="20" max="31">
+          </div>
+        </div>
+        <div class="g2">
+          <div class="fg">
+            <label class="lbl">Station Filter <small style="color:var(--muted)">(optional – leave blank for all)</small></label>
+            <select class="fc" id="gen-station"><option value="">All Stations</option></select>
+          </div>
+          <div class="fg">
+            <label class="lbl">Notes</label>
+            <input type="text" class="fc" id="gen-notes" placeholder="Optional notes for this payroll run">
+          </div>
+        </div>
+        <div style="background:rgba(255,167,38,.06);border:1px solid rgba(255,167,38,.2);border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--warning);">
+          <i class="fas fa-info-circle" style="margin-right:6px"></i>
+          <strong>How it works:</strong> The system pulls each active employee's current salary structure,
+          checks attendance records for absent days (if available), computes HRA / allowances / deductions
+          and calculates net pay automatically. You can manually adjust any figure after generation.
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-back" onclick="showTab('runs')">Cancel</button>
+          <button class="btn btn-primary" id="genBtn" onclick="generatePayroll()">
+            <i class="fas fa-cogs"></i> Generate Payroll
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: COMPONENTS ═══ -->
+    <div class="tab-panel" id="panel-components">
+      <div class="cc" style="margin-bottom:14px">
+        <div class="cc-hd">
+          <h4><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:6px"></i>Add / Edit Component</h4>
+        </div>
+        <div id="compAlert" class="alert"></div>
+        <div class="g3">
+          <div class="fg"><label class="lbl">Name <span class="req">*</span></label><input type="text" class="fc" id="comp-name" placeholder="e.g. Transport Allowance"></div>
+          <div class="fg"><label class="lbl">Code <span class="req">*</span></label><input type="text" class="fc" id="comp-code" placeholder="TRANS" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'')"></div>
+          <div class="fg"><label class="lbl">Type <span class="req">*</span></label>
+            <select class="fc" id="comp-type">
+              <option value="earning">Earning</option>
+              <option value="deduction">Deduction</option>
+            </select>
+          </div>
+        </div>
+        <div class="g3">
+          <div class="fg"><label class="lbl">Calculation</label>
+            <select class="fc" id="comp-calc">
+              <option value="fixed">Fixed Amount</option>
+              <option value="percentage_of_basic">% of Basic</option>
+              <option value="percentage_of_gross">% of Gross</option>
+              <option value="per_absent_day">Per Absent Day</option>
+            </select>
+          </div>
+          <div class="fg"><label class="lbl">Default Value</label><input type="number" class="fc" id="comp-val" placeholder="0.00" min="0" step="0.01"></div>
+          <div class="fg"><label class="lbl">Description</label><input type="text" class="fc" id="comp-desc" placeholder="Brief description"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+            <input type="checkbox" id="comp-taxable" style="accent-color:var(--primary)"> Taxable
+          </label>
+        </div>
+        <input type="hidden" id="comp-id">
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-back" onclick="resetCompForm()">Clear</button>
+          <button class="btn btn-success" onclick="saveComponent()"><i class="fas fa-save"></i> Save Component</button>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-hd"><h4>All Payroll Components</h4></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Code</th><th>Type</th><th>Calculation</th><th>Default</th><th>Taxable</th><th>Statutory</th><th>Actions</th></tr></thead>
+            <tbody id="compTbody">
+              <tr><td colspan="9" class="empty"><i class="fas fa-spinner fa-spin"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ═══ MODAL: SALARY STRUCTURE ═══ -->
+<div class="mo" id="salModal">
+  <div class="mbox">
+    <div class="mhd">
+      <h3><i class="fas fa-sliders-h" style="color:var(--primary);margin-right:8px"></i>Salary Structure — <span id="salEmpName"></span></h3>
+      <button class="mcl" onclick="closeModal('salModal')">&times;</button>
+    </div>
+    <div class="mbody">
+      <div id="salAlert" class="alert"></div>
+
+      <!-- LIVE PREVIEW -->
+      <div class="preview-card" id="salPreview">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Live Calculation Preview</div>
+        <div class="preview-row"><span>Basic Pay</span><strong id="pv-basic">0</strong></div>
+        <div class="preview-row"><span>HRA (45% of Basic)</span><strong id="pv-hra">0</strong></div>
+        <div class="preview-row"><span>Allowances</span><strong id="pv-all">0</strong></div>
+        <div class="preview-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span>Gross Salary</span><strong id="pv-gross" style="color:#81c784;font-size:14px">0</strong></div>
+        <div class="preview-row"><span>Total Deductions</span><strong id="pv-ded" style="color:#ef9a9a">0</strong></div>
+        <div class="preview-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span>NET SALARY</span><strong id="pv-net" style="color:var(--primary);font-size:16px">0</strong></div>
+      </div>
+
+      <div class="fg">
+        <label class="lbl">Effective From <span class="req">*</span></label>
+        <input type="date" class="fc" id="sal-effective">
+      </div>
+
+      <div class="sal-section">
+        <div class="sal-section-title"><i class="fas fa-plus-circle"></i> Earnings</div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">Basic Pay (PKR) <span class="req">*</span></label><input type="number" class="fc sal-inp" id="sal-basic" min="0" oninput="updateSalPreview()"></div>
+          <div class="fg"><label class="lbl">HRA Rate (%)</label><input type="number" class="fc sal-inp" id="sal-hra-rate" value="45" min="0" max="100" oninput="updateSalPreview()"></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">Medical Allowance (PKR)</label><input type="number" class="fc sal-inp" id="sal-med" value="1500" min="0" oninput="updateSalPreview()"></div>
+          <div class="fg"><label class="lbl">Conveyance Allowance (PKR)</label><input type="number" class="fc sal-inp" id="sal-conv" value="1500" min="0" oninput="updateSalPreview()"></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">Special Allowance (PKR)</label><input type="number" class="fc sal-inp" id="sal-spec" value="0" min="0" oninput="updateSalPreview()"></div>
+          <div class="fg"><label class="lbl">Ad-hoc Allowance (PKR)</label><input type="number" class="fc sal-inp" id="sal-adhoc" value="0" min="0" oninput="updateSalPreview()"></div>
+        </div>
+      </div>
+
+      <div class="sal-section">
+        <div class="sal-section-title"><i class="fas fa-minus-circle" style="color:#ef9a9a"></i> Deductions</div>
+        <div class="g2">
+          <div class="fg">
+            <label class="lbl">EOBI Employee (PKR) <small style="color:var(--muted)">(Statutory)</small></label>
+            <input type="number" class="fc sal-inp" id="sal-eobi-emp" value="370" min="0" oninput="updateSalPreview()">
+          </div>
+          <div class="fg">
+            <label class="lbl">EOBI Employer (PKR) <small style="color:var(--muted)">(Cost Centre)</small></label>
+            <input type="number" class="fc sal-inp" id="sal-eobi-emr" value="1850" min="0">
+          </div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">Income Tax / WHT (PKR)</label><input type="number" class="fc sal-inp" id="sal-tax" value="0" min="0" oninput="updateSalPreview()"></div>
+          <div class="fg"><label class="lbl">Provident Fund (PKR)</label><input type="number" class="fc sal-inp" id="sal-pf" value="0" min="0" oninput="updateSalPreview()"></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">Loan Recovery (PKR)</label><input type="number" class="fc sal-inp" id="sal-loan" value="0" min="0" oninput="updateSalPreview()"></div>
+          <div class="fg"><label class="lbl">Group Insurance (PKR)</label><input type="number" class="fc sal-inp" id="sal-ins" value="0" min="0" oninput="updateSalPreview()"></div>
+        </div>
+      </div>
+
+      <div class="fg"><label class="lbl">Notes</label><input type="text" class="fc" id="sal-notes" placeholder="Reason for revision, e.g. Annual increment 2025"></div>
+      <input type="hidden" id="sal-emp-id">
+    </div>
+    <div class="mfoo">
+      <button class="btn btn-back" onclick="closeModal('salModal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveSalary()"><i class="fas fa-save"></i> Save Structure</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PAYROLL DETAIL (entries table) ═══ -->
+<div class="mo" id="runDetailModal">
+  <div class="mbox mbox-wide">
+    <div class="mhd">
+      <h3 id="runDetailTitle"><i class="fas fa-table" style="color:var(--primary);margin-right:8px"></i>Payroll Detail</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-success btn-sm" id="finalizeBtn" onclick="finalizeRun()"><i class="fas fa-lock"></i> Finalize</button>
+        <button class="btn btn-warning btn-sm" id="paidBtn" onclick="markPaid()"><i class="fas fa-check-circle"></i> Mark Paid</button>
+        <button class="btn btn-info btn-sm" onclick="exportRunExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+        <button class="btn btn-primary btn-sm" onclick="exportRunPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+        <button class="mcl" onclick="closeModal('runDetailModal')" style="font-size:22px">&times;</button>
+      </div>
+    </div>
+    <div style="padding:14px 18px">
+      <!-- Run Summary Bar -->
+      <div id="runDetailAlert" class="alert" style="margin-bottom:10px"></div>
+      <div id="runSummaryBar" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;background:var(--inp);border:1px solid var(--border);border-radius:6px;padding:12px;"></div>
+      <div class="filters">
+        <input type="text" class="fc" style="width:180px" id="entry-search" placeholder="Search name…" oninput="loadEntries()">
+        <select class="fc" id="entry-station" onchange="loadEntries()"><option value="">All Stations</option></select>
+      </div>
+      <div class="tbl-wrap" style="max-height:420px;overflow-y:auto;">
+        <table id="entriesTable">
+          <thead><tr>
+            <th>#</th><th>Employee</th><th>Station</th>
+            <th>Basic</th><th>Gross</th><th>Deductions</th><th>Net Pay</th>
+            <th>Present</th><th>Absent</th><th>Status</th><th>Payslip</th>
+          </tr></thead>
+          <tbody id="entriesTbody">
+            <tr><td colspan="11" class="empty"><i class="fas fa-spinner fa-spin"></i></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PAYSLIP ═══ -->
+<div class="mo" id="payslipModal">
+  <div class="mbox mbox-wide">
+    <div class="mhd">
+      <h3><i class="fas fa-file-invoice-dollar" style="color:var(--primary);margin-right:8px"></i>Payslip</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="printPayslip()"><i class="fas fa-print"></i> Print</button>
+        <button class="btn btn-success btn-sm" onclick="downloadPayslipPDF()"><i class="fas fa-download"></i> PDF</button>
+        <button class="mcl" onclick="closeModal('payslipModal')" style="font-size:22px">&times;</button>
+      </div>
+    </div>
+    <div style="padding:18px" id="payslipBody"></div>
+  </div>
+</div>
+
+<script>
+// ── AUTH ──────────────────────────────────────────────
+Auth.requireAuth();
+async function logout(){try{await api.post('logout');}catch{}Auth.clearToken();window.location.href='index.html';}
+
+// ── STATE ──────────────────────────────────────────────
+let currentRunId = null;
+let currentPayslipData = null;
+let allStations = [];
+
+// ── INIT ──────────────────────────────────────────────
+async function init(){
+  populateMonthYear();
+  await loadStations();
+  await Promise.all([loadStats(), loadRuns(), loadStructures(), loadComponents()]);
+}
+
+function populateMonthYear(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const curY=new Date().getFullYear(),curM=new Date().getMonth();
+  ['gen-month'].forEach(id=>{
+    const el=document.getElementById(id);
+    months.forEach((m,i)=>{const o=document.createElement('option');o.value=i+1;o.textContent=m;if(i===curM)o.selected=true;el.appendChild(o);});
+  });
+  ['gen-year'].forEach(id=>{
+    const el=document.getElementById(id);
+    for(let y=curY+1;y>=curY-3;y--){const o=document.createElement('option');o.value=y;o.textContent=y;if(y===curY)o.selected=true;el.appendChild(o);}
+  });
+}
+
+async function loadStations(){
+  try{
+    const res=await api.get('fields');
+    const d=await res.json();
+    allStations=(d.fields||{}).station||[];
+    ['str-station','gen-station','entry-station'].forEach(id=>{
+      const el=document.getElementById(id);if(!el)return;
+      const first=el.options[0];el.innerHTML='';el.appendChild(first);
+      allStations.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o);});
+    });
+  }catch{}
+}
+
+// ── STATS ──────────────────────────────────────────────
+async function loadStats(){
+  try{
+    const res=await api.get('payroll/stats');
+    const d=await res.json();
+    if(!d.success)return;
+    const r=d.latest_run;
+    document.getElementById('st-net').textContent  = r ? 'PKR '+fmt(r.total_net) : '—';
+    document.getElementById('st-emps').textContent = r ? r.total_employees : '—';
+    document.getElementById('st-runs').textContent = d.total_runs;
+    document.getElementById('st-nostr').textContent = d.no_structure;
+    if(d.no_structure > 0){
+      document.getElementById('st-nostr').style.color='#ef9a9a';
+    }
+  }catch{}
+}
+
+// ── PAYROLL RUNS ──────────────────────────────────────
+async function loadRuns(){
+  try{
+    const res=await api.get('payroll/runs');
+    const d=await res.json();
+    if(!d.success)throw new Error();
+    const runs=d.runs||[];
+    document.getElementById('runsCount').textContent=runs.length+' runs';
+    if(!runs.length){
+      document.getElementById('runsTbody').innerHTML='<tr><td colspan="9" class="empty"><i class="fas fa-inbox"></i><p>No payroll runs yet. Click Generate to create the first one.</p></td></tr>';
+      return;
+    }
+    document.getElementById('runsTbody').innerHTML=runs.map((r,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td><strong style="color:#fff">${esc(r.title)}</strong></td>
+        <td>${r.total_employees}</td>
+        <td>PKR ${fmt(r.total_gross)}</td>
+        <td style="color:#ef9a9a">PKR ${fmt(r.total_deductions)}</td>
+        <td><strong style="color:#81c784">PKR ${fmt(r.total_net)}</strong></td>
+        <td>${runBadge(r.status)}</td>
+        <td>${(r.created_at||'').slice(0,10)}</td>
+        <td>
+          <button class="btn btn-info btn-sm" onclick="openRunDetail(${r.id})" title="View Detail"><i class="fas fa-eye"></i></button>
+          ${r.status==='Draft'||r.status==='Processing'
+            ?`<button class="btn btn-danger btn-sm" onclick="deleteRun(${r.id})" title="Delete"><i class="fas fa-trash"></i></button>`:''}
+        </td>
+      </tr>`).join('');
+  }catch(e){
+    document.getElementById('runsTbody').innerHTML='<tr><td colspan="9" class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a">Failed to load. Is the API running?</p></td></tr>';
+  }
+}
+
+// ── GENERATE PAYROLL ──────────────────────────────────
+async function generatePayroll(){
+  const month=document.getElementById('gen-month').value;
+  const year=document.getElementById('gen-year').value;
+  const wdays=document.getElementById('gen-wdays').value;
+  const station=document.getElementById('gen-station').value;
+  const notes=document.getElementById('gen-notes').value;
+  if(!month||!year||!wdays){showInline('genAlert','Please fill all required fields.');return;}
+  if(!confirm(`Generate payroll for ${document.getElementById('gen-month').options[month-1].text} ${year}?\n\nThis will create salary slips for all active employees.`))return;
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-cog fa-spin"></i> Generating...';
+  try{
+    const res=await api.post('payroll/runs',{month:parseInt(month),year:parseInt(year),working_days:parseInt(wdays),station,notes});
+    const d=await res.json();
+    if(d.success){
+      showAlert('s','✅ Payroll generated successfully for '+d.run.title);
+      await Promise.all([loadRuns(),loadStats()]);
+      showTab('runs');
+    } else {
+      showInline('genAlert','❌ '+(d.error||'Failed.'));
+    }
+  }catch{showInline('genAlert','❌ Server error.');}
+  finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-cogs"></i> Generate Payroll';}
+}
+
+// ── RUN DETAIL ────────────────────────────────────────
+async function openRunDetail(id){
+  currentRunId=id;
+  document.getElementById('runDetailAlert').style.display='none'; // FIX: clear stale alert
+  document.getElementById('entriesTbody').innerHTML='<tr><td colspan="11" class="empty"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+  document.getElementById('runDetailModal').classList.add('open');
+  await loadEntries();
+}
+
+async function loadEntries(){
+  if(!currentRunId)return;
+  const search=document.getElementById('entry-search').value;
+  const station=document.getElementById('entry-station').value;
+  try{
+    const res=await api.get(`payroll/runs/${currentRunId}/entries`,{q:search,station});
+    const d=await res.json();
+    if(!d.success)throw new Error();
+    const run=d.run;
+    document.getElementById('runDetailTitle').innerHTML=`<i class="fas fa-table" style="color:var(--primary);margin-right:8px"></i>${esc(run.title)} — Detail`;
+
+    // Summary bar
+    document.getElementById('runSummaryBar').innerHTML=`
+      <div style="text-align:center"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Period</div><div style="font-size:13px;color:#fff;font-weight:700">${run.month_name} ${run.year}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Status</div><div style="margin-top:3px">${runBadge(run.status)}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Employees</div><div style="font-size:14px;color:#fff;font-weight:700">${(d.entries||[]).length}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Total Gross</div><div style="font-size:13px;color:#81c784;font-weight:700">PKR ${fmt((d.entries||[]).reduce((s,e)=>s+parseFloat(e.gross_salary||0),0))}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Total Net</div><div style="font-size:14px;color:var(--primary);font-weight:800">PKR ${fmt((d.entries||[]).reduce((s,e)=>s+parseFloat(e.net_salary||0),0))}</div></div>`;
+
+    // Show/hide action buttons
+    const isEditable=run.status==='Draft'||run.status==='Processing';
+    document.getElementById('finalizeBtn').style.display=isEditable?'inline-flex':'none';
+    document.getElementById('paidBtn').style.display=run.status==='Finalized'?'inline-flex':'none';
+
+    const entries=d.entries||[];
+    if(!entries.length){
+      document.getElementById('entriesTbody').innerHTML='<tr><td colspan="11" class="empty"><i class="fas fa-inbox"></i><p>No entries found.</p></td></tr>';
+      return;
+    }
+    document.getElementById('entriesTbody').innerHTML=entries.map((e,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td><strong style="color:#fff">${esc(e.employee?.full_name||'—')}</strong><br><small style="color:var(--muted)">${e.employee?.emp_code||''}</small></td>
+        <td>${esc(e.employee?.station||'—')}</td>
+        <td>PKR ${fmt(e.basic_pay)}</td>
+        <td>PKR ${fmt(e.gross_salary)}</td>
+        <td style="color:#ef9a9a">PKR ${fmt(e.total_deductions)}</td>
+        <td><strong style="color:#81c784">PKR ${fmt(e.net_salary)}</strong></td>
+        <td>${e.present_days}</td>
+        <td>${e.absent_days>0?`<span style="color:#ef9a9a">${e.absent_days}</span>`:e.absent_days}</td>
+        <td>${entryBadge(e.status)}</td>
+        <td><button class="btn btn-info btn-sm" onclick="openPayslip(${currentRunId},${e.employee_id})" title="View Payslip"><i class="fas fa-receipt"></i></button></td>
+      </tr>`).join('');
+  }catch{
+    document.getElementById('entriesTbody').innerHTML='<tr><td colspan="11" class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a">Failed to load entries.</p></td></tr>';
+  }
+}
+
+async function finalizeRun(){
+  if(!confirm('Finalize this payroll? Once finalized, entries cannot be edited.'))return;
+  try{
+    const res=await api.patch(`payroll/runs/${currentRunId}/finalize`,{});
+    const d=await res.json();
+    // FIX: show inline alert inside the modal (page-level alert scrolls away while modal is open)
+    if(d.success){showInline('runDetailAlert','✅ Payroll finalized successfully.');await loadEntries();await loadRuns();}
+    else showInline('runDetailAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('runDetailAlert','❌ Server error.');}
+}
+
+async function markPaid(){
+  if(!confirm('Mark this payroll as Paid? This confirms payment has been disbursed.'))return;
+  try{
+    const res=await api.patch(`payroll/runs/${currentRunId}/mark-paid`,{});
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Payroll marked as Paid.');closeModal('runDetailModal');await loadRuns();await loadStats();}
+    else showInline('runDetailAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('runDetailAlert','❌ Server error.');}
+}
+
+async function deleteRun(id){
+  if(!confirm('Delete this draft payroll? All entries will be removed.'))return;
+  try{
+    const res=await api.delete(`payroll/runs/${id}`);
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Payroll deleted.');loadRuns();}
+    else showAlert('e','❌ '+(d.error||'Failed.'));
+  }catch{showAlert('e','❌ Server error.');}
+}
+
+// ── PAYSLIP ──────────────────────────────────────────
+async function openPayslip(runId, empId){
+  try{
+    const res=await api.get(`payroll/runs/${runId}/payslip/${empId}`);
+    const d=await res.json();
+    if(!d.success)throw new Error(d.error||'Not found');
+    currentPayslipData=d.payslip;
+    renderPayslip(d.payslip);
+    document.getElementById('payslipModal').classList.add('open');
+  }catch(e){showAlert('e','❌ '+e.message);}
+}
+
+function renderPayslip(p){
+  const earningsRows=p.earnings.filter(e=>e.amount>0).map(e=>`<tr><td>${esc(e.label)}</td><td style="text-align:right">PKR ${fmt(e.amount)}</td></tr>`).join('');
+  const deductionRows=p.deductions.filter(d=>d.amount>0).map(d=>`<tr><td>${esc(d.label)}</td><td style="text-align:right">PKR ${fmt(d.amount)}</td></tr>`).join('');
+  const grossAll=p.earnings.reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const dedAll=p.deductions.reduce((s,d)=>s+parseFloat(d.amount||0),0);
+  const netStr=pkrInWords(parseFloat(p.summary.net_salary||0));
+
+  document.getElementById('payslipBody').innerHTML=`
+  <div class="payslip-wrap" id="printablePayslip">
+    <div class="payslip-header">
+      <div>
+        <h2>🚒 RESCUE 1122 — SALARY SLIP</h2>
+        <p>Government of Sindh | Provincial Disaster Management Authority</p>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;font-weight:700">${esc(p.run.title)}</div>
+        <div style="font-size:11px;opacity:.8">Status: ${p.run.status}</div>
+      </div>
+    </div>
+
+    <div class="payslip-emp">
+      <div><span style="color:#666">Employee Name:</span> <strong>${esc(p.employee.full_name)}</strong></div>
+      <div><span style="color:#666">Employee Code:</span> <strong>${esc(p.employee.emp_code||'—')}</strong></div>
+      <div><span style="color:#666">CNIC:</span> <strong>${esc(p.employee.cnic||'—')}</strong></div>
+      <div><span style="color:#666">Designation:</span> <strong>${esc(p.employee.designation||'—')}</strong></div>
+      <div><span style="color:#666">Station:</span> <strong>${esc(p.employee.station||'—')}</strong></div>
+      <div><span style="color:#666">Pay Scale:</span> <strong>${esc(p.employee.pay_scale||'—')}</strong></div>
+      <div><span style="color:#666">Bank:</span> <strong>${esc(p.employee.bank_name||'—')}</strong></div>
+      <div><span style="color:#666">IBAN:</span> <strong style="font-family:monospace;font-size:10px">${esc(p.employee.iban||'—')}</strong></div>
+      <div><span style="color:#666">EOBI No:</span> <strong>${esc(p.employee.eobi_no||'—')}</strong></div>
+      <div><span style="color:#666">Attendance:</span> <strong>${p.summary.present_days} Present / ${p.summary.absent_days} Absent / ${p.summary.working_days} Working Days</strong></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#b31b1b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Earnings</div>
+        <table class="pay-table">
+          <thead><tr><th>Component</th><th style="text-align:right">Amount</th></tr></thead>
+          <tbody>${earningsRows}</tbody>
+          <tfoot><tr style="background:#b31b1b"><td style="color:#fff;font-weight:700">Total Earnings</td><td style="color:#fff;font-weight:700;text-align:right">PKR ${fmt(grossAll)}</td></tr></tfoot>
+        </table>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#b31b1b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Deductions</div>
+        <table class="pay-table">
+          <thead><tr><th>Component</th><th style="text-align:right">Amount</th></tr></thead>
+          <tbody>${deductionRows||'<tr><td colspan="2" style="color:#999;text-align:center">No deductions</td></tr>'}</tbody>
+          <tfoot><tr style="background:#555"><td style="color:#fff;font-weight:700">Total Deductions</td><td style="color:#fff;font-weight:700;text-align:right">PKR ${fmt(dedAll)}</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="pay-summary">
+      <div class="pay-sum-card"><div class="label">Gross Salary</div><div class="amount">PKR ${fmt(p.summary.gross_salary)}</div></div>
+      <div class="pay-sum-card"><div class="label">Total Deductions</div><div class="amount" style="color:#e53935">PKR ${fmt(p.summary.total_deductions)}</div></div>
+      <div class="pay-sum-card" style="background:#b31b1b;color:#fff"><div class="label" style="color:rgba(255,255,255,.7)">NET SALARY</div><div class="amount" style="color:#fff;font-size:22px">PKR ${fmt(p.summary.net_salary)}</div></div>
+    </div>
+
+    <div class="in-words"><strong>Net Salary in Words:</strong> ${netStr}</div>
+
+    <div class="payslip-footer">
+      This is a computer-generated payslip. No signature required. &nbsp;|&nbsp;
+      Rescue 1122, Government of Sindh &nbsp;|&nbsp; ${esc(p.run.title)}<br>
+      <strong>Confidential — For Internal Use Only</strong>
+    </div>
+  </div>`;
+}
+
+function printPayslip(){window.print();}
+
+function downloadPayslipPDF(){
+  if(!currentPayslipData)return;
+  const p=currentPayslipData;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const pw=210;
+
+  // Header bar
+  doc.setFillColor(179,27,27);doc.rect(0,0,pw,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text('RESCUE 1122 — SALARY SLIP',14,14);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text(`${p.run.title} | ${p.run.status}`,pw-14,14,{align:'right'});
+
+  let y=30;
+  // Employee info box
+  doc.setFillColor(245,248,252);doc.rect(10,y,pw-20,28,'F');
+  doc.setTextColor(30,60,100);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text(`${p.employee.full_name}`,14,y+7);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);
+  const empLines=[
+    [`Code: ${p.employee.emp_code||'—'}`,`CNIC: ${p.employee.cnic||'—'}`],
+    [`Designation: ${p.employee.designation||'—'}`,`Station: ${p.employee.station||'—'}`],
+    [`Pay Scale: ${p.employee.pay_scale||'—'}`,`Bank: ${p.employee.bank_name||'—'}`],
+  ];
+  empLines.forEach((row,i)=>{
+    doc.text(row[0],14,y+13+(i*5));
+    doc.text(row[1],110,y+13+(i*5));
+  });
+  y+=34;
+
+  // Earnings table
+  doc.autoTable({
+    startY:y,
+    head:[['Earnings','Amount (PKR)']],
+    body:p.earnings.filter(e=>e.amount>0).map(e=>[e.label,fmt(e.amount)]),
+    headStyles:{fillColor:[179,27,27],textColor:255,fontSize:8},
+    bodyStyles:{fontSize:8},
+    alternateRowStyles:{fillColor:[248,250,252]},
+    columnStyles:{1:{halign:'right'}},
+    margin:{left:10,right:110},tableWidth:90,
+  });
+  const earningsEndY=doc.lastAutoTable.finalY;
+
+  // Deductions table (right column)
+  doc.autoTable({
+    startY:y,
+    head:[['Deductions','Amount (PKR)']],
+    body:p.deductions.filter(d=>d.amount>0).map(d=>[d.label,fmt(d.amount)]),
+    headStyles:{fillColor:[60,60,60],textColor:255,fontSize:8},
+    bodyStyles:{fontSize:8},
+    alternateRowStyles:{fillColor:[248,250,252]},
+    columnStyles:{1:{halign:'right'}},
+    margin:{left:110,right:10},tableWidth:90,
+  });
+
+  y=Math.max(earningsEndY, doc.lastAutoTable.finalY)+8;
+
+  // Net summary
+  doc.setFillColor(179,27,27);doc.rect(10,y,pw-20,16,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(10);doc.setFont('helvetica','bold');
+  doc.text(`Gross: PKR ${fmt(p.summary.gross_salary)}`,14,y+6);
+  doc.text(`Deductions: PKR ${fmt(p.summary.total_deductions)}`,80,y+6);
+  doc.text(`NET PAY: PKR ${fmt(p.summary.net_salary)}`,pw-14,y+6,{align:'right'});
+  doc.setFontSize(8);
+  doc.text(`In Words: ${pkrInWords(parseFloat(p.summary.net_salary))}`,14,y+13);
+
+  y+=22;
+  doc.setTextColor(150,150,150);doc.setFontSize(7);doc.setFont('helvetica','normal');
+  doc.text('Computer-generated payslip. No signature required. Confidential — For Internal Use Only.',pw/2,y,{align:'center'});
+
+  doc.save(`Payslip_${p.employee.emp_code||p.employee.full_name}_${p.run.month_name}_${p.run.year}.pdf`);
+}
+
+// ── SALARY STRUCTURES ─────────────────────────────────
+async function loadStructures(){
+  const q=document.getElementById('str-search').value;
+  const station=document.getElementById('str-station').value;
+  try{
+    const res=await api.get('payroll/structures',{q,station});
+    const d=await res.json();
+    if(!d.success)throw new Error();
+    const emps=d.employees||[];
+    document.getElementById('strCount').textContent=emps.length+' employees';
+    if(!emps.length){
+      document.getElementById('strTbody').innerHTML='<tr><td colspan="10" class="empty"><i class="fas fa-inbox"></i><p>No active employees found.</p></td></tr>';
+      return;
+    }
+    document.getElementById('strTbody').innerHTML=emps.map((e)=>`
+      <tr>
+        <td><strong style="color:#fff">${esc(e.full_name)}</strong><br><small style="color:var(--muted)">${e.emp_code||''}</small></td>
+        <td>${esc(e.designation||'—')}</td>
+        <td>${esc(e.station||'—')}</td>
+        <td>${esc(e.pay_scale||'—')}</td>
+        <td>PKR ${fmt(e.basic_pay||0)}</td>
+        <td>PKR ${fmt(e.gross||0)}</td>
+        <td><strong style="color:#81c784">PKR ${fmt(e.net||0)}</strong></td>
+        <td>${e.effective_from||'<span style="color:var(--muted)">Not set</span>'}</td>
+        <td>${e.has_structure
+          ?'<span class="badge b-approved">✓ Set</span>'
+          :'<span class="badge b-hold">⚠ Default</span>'}</td>
+        <td><button class="btn btn-info btn-sm" onclick="openSalaryModal(${e.id})"><i class="fas fa-edit"></i> Edit</button></td>
+      </tr>`).join('');
+  }catch{
+    document.getElementById('strTbody').innerHTML='<tr><td colspan="10" class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a">Failed to load.</p></td></tr>';
+  }
+}
+
+async function openSalaryModal(empId){
+  document.getElementById('sal-emp-id').value=empId;
+  document.getElementById('salAlert').style.display='none';
+  try{
+    const res=await api.get(`payroll/structures/${empId}`);
+    const d=await res.json();
+    if(!d.success)throw new Error();
+    const s=d.structure;
+    document.getElementById('salEmpName').textContent=s.employee_name||'';
+    document.getElementById('sal-effective').value=s.effective_from?s.effective_from.slice(0,10):new Date().toISOString().slice(0,10);
+    document.getElementById('sal-basic').value    = s.basic_pay||0;
+    document.getElementById('sal-hra-rate').value = s.hra_rate||45;
+    document.getElementById('sal-med').value      = s.medical_allowance||1500;
+    document.getElementById('sal-conv').value     = s.conveyance_allowance||1500;
+    document.getElementById('sal-spec').value     = s.special_allowance||0;
+    document.getElementById('sal-adhoc').value    = s.adhoc_allowance||0;
+    document.getElementById('sal-eobi-emp').value = s.eobi_employee||370;
+    document.getElementById('sal-eobi-emr').value = s.eobi_employer||1850;
+    document.getElementById('sal-tax').value      = s.income_tax||0;
+    document.getElementById('sal-pf').value       = s.provident_fund||0;
+    document.getElementById('sal-loan').value     = s.loan_recovery||0;
+    document.getElementById('sal-ins').value      = s.group_insurance||0;
+    document.getElementById('sal-notes').value    = '';
+    updateSalPreview();
+    document.getElementById('salModal').classList.add('open');
+  }catch(e){showAlert('e','❌ Could not load salary structure.');}
+}
+
+function updateSalPreview(){
+  const basic   = parseFloat(document.getElementById('sal-basic').value)||0;
+  const hraRate = parseFloat(document.getElementById('sal-hra-rate').value)||0;
+  const med     = parseFloat(document.getElementById('sal-med').value)||0;
+  const conv    = parseFloat(document.getElementById('sal-conv').value)||0;
+  const spec    = parseFloat(document.getElementById('sal-spec').value)||0;
+  const adhoc   = parseFloat(document.getElementById('sal-adhoc').value)||0;
+  const eobi    = parseFloat(document.getElementById('sal-eobi-emp').value)||0;
+  const tax     = parseFloat(document.getElementById('sal-tax').value)||0;
+  const pf      = parseFloat(document.getElementById('sal-pf').value)||0;
+  const loan    = parseFloat(document.getElementById('sal-loan').value)||0;
+  const ins     = parseFloat(document.getElementById('sal-ins').value)||0;
+
+  const hra     = Math.round(basic*hraRate/100*100)/100;
+  const gross   = basic+hra+med+conv+spec+adhoc;
+  const ded     = eobi+tax+pf+loan+ins;
+  const net     = Math.max(0, gross-ded);
+
+  document.getElementById('pv-basic').textContent = 'PKR '+fmt(basic);
+  document.getElementById('pv-hra').textContent   = 'PKR '+fmt(hra);
+  document.getElementById('pv-all').textContent   = 'PKR '+fmt(med+conv+spec+adhoc);
+  document.getElementById('pv-gross').textContent = 'PKR '+fmt(gross);
+  document.getElementById('pv-ded').textContent   = 'PKR '+fmt(ded);
+  document.getElementById('pv-net').textContent   = 'PKR '+fmt(net);
+}
+
+async function saveSalary(){
+  const empId=document.getElementById('sal-emp-id').value;
+  const basic=document.getElementById('sal-basic').value;
+  const eff=document.getElementById('sal-effective').value;
+  if(!basic||!eff){showInline('salAlert','Basic pay and effective date are required.');return;}
+  const payload={
+    employee_id: parseInt(empId),
+    effective_from: eff,
+    basic_pay:            parseFloat(document.getElementById('sal-basic').value)||0,
+    hra_rate:             parseFloat(document.getElementById('sal-hra-rate').value)||45,
+    medical_allowance:    parseFloat(document.getElementById('sal-med').value)||0,
+    conveyance_allowance: parseFloat(document.getElementById('sal-conv').value)||0,
+    special_allowance:    parseFloat(document.getElementById('sal-spec').value)||0,
+    adhoc_allowance:      parseFloat(document.getElementById('sal-adhoc').value)||0,
+    eobi_employee:        parseFloat(document.getElementById('sal-eobi-emp').value)||0,
+    eobi_employer:        parseFloat(document.getElementById('sal-eobi-emr').value)||0,
+    income_tax:           parseFloat(document.getElementById('sal-tax').value)||0,
+    provident_fund:       parseFloat(document.getElementById('sal-pf').value)||0,
+    loan_recovery:        parseFloat(document.getElementById('sal-loan').value)||0,
+    group_insurance:      parseFloat(document.getElementById('sal-ins').value)||0,
+    notes:                document.getElementById('sal-notes').value,
+  };
+  try{
+    const res=await api.post('payroll/structures',payload);
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Salary structure saved.');closeModal('salModal');loadStructures();}
+    else showInline('salAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('salAlert','❌ Server error.');}
+}
+
+// ── COMPONENTS ────────────────────────────────────────
+// FIX: store loaded components by id so editComp(id) never needs
+// JSON embedded inside an HTML onclick attribute (that breaks on quotes).
+let _compMap = {};
+
+async function loadComponents(){
+  try{
+    const res=await api.get('payroll/components');
+    const d=await res.json();
+    if(!d.success)throw new Error(d.error||'Failed to load components');
+    const comps=d.components||[];
+    _compMap={};
+    comps.forEach(c=>{ _compMap[c.id]=c; });
+    document.getElementById('compTbody').innerHTML=comps.map((c,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td><strong style="color:#fff">${esc(c.name)}</strong></td>
+        <td><code style="background:var(--inp);padding:1px 5px;border-radius:3px;font-size:10px">${esc(c.code)}</code></td>
+        <td>${c.type==='earning'?'<span style="color:#81c784">Earning</span>':'<span style="color:#ef9a9a">Deduction</span>'}</td>
+        <td>${esc((c.calculation_type||'').replace(/_/g,' '))}</td>
+        <td>${c.default_value}</td>
+        <td>${c.is_taxable?'<span class="badge b-processing">Yes</span>':'No'}</td>
+        <td>${c.is_statutory?'<span class="badge b-final">Statutory</span>':'—'}</td>
+        <td>
+          ${!c.is_statutory
+            ?`<button class="btn btn-info btn-sm" onclick="editComp(${c.id})"><i class="fas fa-edit"></i></button>
+               <button class="btn btn-danger btn-sm" onclick="deleteComp(${c.id})"><i class="fas fa-trash"></i></button>`
+            :'<span style="font-size:10px;color:var(--muted)">Protected</span>'}
+        </td>
+      </tr>`).join('');
+  }catch(err){
+    document.getElementById('compTbody').innerHTML=`<tr><td colspan="9" class="empty"><i class="fas fa-exclamation-triangle" style="color:#ef9a9a"></i><p style="color:#ef9a9a;margin-top:8px">${err.message||'Failed to load components. Check the API is running.'}</p></td></tr>`;
+  }
+}
+
+// FIX: accepts a numeric id and looks up the stored object — no inline JSON risk
+function editComp(id){
+  const c=_compMap[id];
+  if(!c){showAlert('e','❌ Component not found. Try refreshing the page.');return;}
+  document.getElementById('comp-id').value=c.id;
+  document.getElementById('comp-name').value=c.name;
+  document.getElementById('comp-code').value=c.code;
+  document.getElementById('comp-type').value=c.type;
+  document.getElementById('comp-calc').value=c.calculation_type||'fixed';
+  document.getElementById('comp-val').value=c.default_value;
+  document.getElementById('comp-desc').value=c.description||'';
+  document.getElementById('comp-taxable').checked=!!c.is_taxable;
+  showTab('components');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function saveComponent(){
+  const name=document.getElementById('comp-name').value.trim();
+  const code=document.getElementById('comp-code').value.trim();
+  if(!name||!code){showInline('compAlert','Name and Code are required.');return;}
+  const payload={
+    id:         document.getElementById('comp-id').value||null,
+    name,code,
+    type:             document.getElementById('comp-type').value,
+    calculation_type: document.getElementById('comp-calc').value,
+    default_value:    parseFloat(document.getElementById('comp-val').value)||0,
+    description:      document.getElementById('comp-desc').value,
+    is_taxable:       document.getElementById('comp-taxable').checked,
+  };
+  try{
+    const compId=document.getElementById('comp-id').value;
+    // FIX: use PUT when editing an existing component, POST when creating a new one
+    const res= compId
+      ? await api.put(`payroll/components/${compId}`, payload)
+      : await api.post('payroll/components', payload);
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Component saved.');resetCompForm();loadComponents();}
+    else showInline('compAlert','❌ '+(d.error||'Failed.'));
+  }catch{showInline('compAlert','❌ Server error.');}
+}
+
+function resetCompForm(){['comp-id','comp-name','comp-code','comp-desc','comp-val'].forEach(id=>document.getElementById(id).value='');document.getElementById('comp-type').value='earning';document.getElementById('comp-calc').value='fixed';document.getElementById('comp-taxable').checked=false;document.getElementById('compAlert').style.display='none';}
+
+async function deleteComp(id){
+  if(!confirm('Delete this component?'))return;
+  try{
+    const res=await api.delete(`payroll/components/${id}`);
+    const d=await res.json();
+    if(d.success){showAlert('s','✅ Deleted.');loadComponents();}
+    else showAlert('e','❌ '+(d.error||'Failed.'));
+  }catch{showAlert('e','❌ Server error.');}
+}
+
+// ── EXPORT ────────────────────────────────────────────
+async function exportRunExcel(){
+  try{
+    const res=await api.get(`payroll/runs/${currentRunId}/entries`,{limit:9999});
+    const d=await res.json();
+    const entries=d.entries||[];
+    const headers=['#','Employee','Emp Code','Designation','Station','Basic Pay','HRA','Medical','Conveyance','Special','Adhoc','Overtime','Gross Salary','EOBI Emp','Income Tax','Provident Fund','Loan Recovery','Absent Deduction','Group Insurance','Total Deductions','Net Salary','Present Days','Absent Days'];
+    const rows=entries.map((e,i)=>[
+      i+1,e.employee?.full_name||'—',e.employee?.emp_code||'',e.employee?.designation||'',e.employee?.station||'',
+      e.basic_pay,e.hra,e.medical_allowance,e.conveyance_allowance,e.special_allowance,e.adhoc_allowance,e.overtime_pay,
+      e.gross_salary,e.eobi_deduction,e.income_tax,e.provident_fund,e.loan_recovery,e.absent_deduction,e.group_insurance,
+      e.total_deductions,e.net_salary,e.present_days,e.absent_days
+    ]);
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws['!cols']=headers.map(()=>({wch:16}));
+    XLSX.utils.book_append_sheet(wb,ws,'Payroll');
+    XLSX.writeFile(wb,`Payroll_Run_${currentRunId}_${d.run?.title||''}.xlsx`.replace(/[^a-z0-9_\-\.]/gi,'_'));
+    showAlert('s','✅ Excel exported.');
+  }catch{showAlert('e','❌ Export failed.');}
+}
+
+async function exportRunPDF(){
+  try{
+    const res=await api.get(`payroll/runs/${currentRunId}/entries`,{limit:9999});
+    const d=await res.json();
+    const entries=d.entries||[];
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    doc.setFillColor(179,27,27);doc.rect(0,0,297,18,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');
+    doc.text(`RESCUE 1122 — ${d.run?.title||'Payroll'}`,14,12);
+    doc.setFontSize(7);doc.setFont('helvetica','normal');
+    doc.text(`Generated: ${new Date().toLocaleString('en-PK')} | Employees: ${entries.length}`,283,12,{align:'right'});
+    doc.autoTable({
+      startY:22,
+      head:[['#','Employee','Code','Station','Basic','Gross','Deductions','Net Pay','Present','Absent']],
+      body:entries.map((e,i)=>[i+1,e.employee?.full_name||'—',e.employee?.emp_code||'',e.employee?.station||'',fmt(e.basic_pay),fmt(e.gross_salary),fmt(e.total_deductions),fmt(e.net_salary),e.present_days,e.absent_days]),
+      headStyles:{fillColor:[179,27,27],textColor:255,fontStyle:'bold',fontSize:7},
+      bodyStyles:{fontSize:7},alternateRowStyles:{fillColor:[248,250,252]},
+      margin:{left:10,right:10},
+    });
+    doc.save(`Payroll_${d.run?.title||currentRunId}.pdf`);
+    showAlert('s','✅ PDF exported.');
+  }catch{showAlert('e','❌ Export failed.');}
+}
+
+// ── TAB ───────────────────────────────────────────────
+function showTab(name){
+  ['runs','structures','generate','components'].forEach(t=>{
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+  });
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// ── HELPERS ───────────────────────────────────────────
+function fmt(n){return parseFloat(n||0).toLocaleString('en-PK',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showAlert(t,m){const b=document.getElementById('alertBox');b.className='alert '+(t==='s'?'al-s':'al-e');b.textContent=m;b.style.display='block';window.scrollTo({top:0,behavior:'smooth'});if(t==='s')setTimeout(()=>b.style.display='none',4000);}
+function showInline(id,m){const b=document.getElementById(id);b.className='alert al-e';b.textContent=m;b.style.display='block';}
+
+function runBadge(s){const m={Draft:'b-draft',Processing:'b-processing',Finalized:'b-final',Paid:'b-paid'};return`<span class="badge ${m[s]||'b-draft'}">${s}</span>`;}
+function entryBadge(s){const m={Pending:'b-draft',Approved:'b-approved',Paid:'b-paid',Hold:'b-hold'};return`<span class="badge ${m[s]||'b-draft'}">${s}</span>`;}
+
+/** Convert a PKR number to words (simplified) */
+function pkrInWords(n){
+  const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  // FIX: added space before 'Hundred' so "Five Hundred" renders correctly
+  const toWords=num=>{
+    if(num===0)return'';if(num<20)return ones[num]+' ';
+    if(num<100)return tens[Math.floor(num/10)]+' '+(num%10?ones[num%10]+' ':'');
+    return ones[Math.floor(num/100)]+' Hundred '+(num%100?toWords(num%100):'');
+  };
+  n=Math.round(n);
+  if(n===0)return'Zero Rupees Only';
+  const crore=Math.floor(n/10000000);n%=10000000;
+  const lakh=Math.floor(n/100000);n%=100000;
+  const thousand=Math.floor(n/1000);n%=1000;
+  let result='';
+  if(crore)result+=toWords(crore)+'Crore ';
+  if(lakh)result+=toWords(lakh)+'Lakh ';
+  if(thousand)result+=toWords(thousand)+'Thousand ';
+  if(n)result+=toWords(n);
+  return result.trim().replace(/\s+/g,' ')+' Rupees Only';
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rescue 1122 — HRM Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--primary:#b31b1b;--bg:#0b1a2a;--card:#0c1e2e;--inp:#081420;--border:#1e3a5f;--text:#c0d4e8;--muted:#6b8fa8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+
+/* animated bg */
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 800px 500px at 20% 50%,rgba(179,27,27,0.08) 0%,transparent 60%),
+  radial-gradient(ellipse 600px 400px at 80% 80%,rgba(25,118,210,0.06) 0%,transparent 60%);
+  pointer-events:none;}
+
+.grid-bg{position:fixed;inset:0;opacity:0.04;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:50px 50px;pointer-events:none;}
+
+.wrap{display:grid;grid-template-columns:1fr 420px;width:900px;max-width:95vw;min-height:540px;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.5);}
+
+/* Left panel */
+.panel{background:linear-gradient(135deg,#06101a 0%,#0c1e2e 50%,#091522 100%);
+  padding:50px 40px;display:flex;flex-direction:column;justify-content:space-between;
+  border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.panel::after{content:'';position:absolute;bottom:-60px;right:-60px;
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(179,27,27,0.12),transparent 70%);}
+.panel-logo{display:flex;align-items:center;gap:14px;}
+.panel-icon{width:54px;height:54px;border-radius:50%;background:var(--primary);
+  display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;}
+.panel-logo h1{font-size:20px;color:#fff;line-height:1.2;}
+.panel-logo small{display:block;font-size:11px;color:var(--muted);margin-top:3px;}
+.panel-hero{margin-top:auto;}
+.panel-hero h2{font-size:28px;color:#fff;line-height:1.3;margin-bottom:14px;font-weight:800;}
+.panel-hero h2 span{color:var(--primary);}
+.panel-hero p{font-size:13px;color:var(--muted);line-height:1.8;}
+.feat{display:flex;flex-direction:column;gap:10px;margin-top:24px;}
+.feat-item{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
+.feat-item i{color:var(--primary);width:14px;}
+
+/* Right panel */
+.form-side{padding:50px 40px;display:flex;flex-direction:column;justify-content:center;}
+.form-side h3{font-size:22px;color:#fff;margin-bottom:6px;font-weight:700;}
+.form-side p{font-size:13px;color:var(--muted);margin-bottom:32px;}
+
+.fg{margin-bottom:20px;}
+.lbl{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+.inp-wrap{position:relative;}
+.inp-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+.fc{width:100%;padding:11px 13px 11px 40px;background:var(--inp);border:1px solid var(--border);
+  border-radius:6px;font-size:14px;color:var(--text);font-family:'Nunito Sans',sans-serif;transition:.2s;}
+.fc:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(179,27,27,.12);}
+.fc::placeholder{color:#2a4a6a;}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;transition:.2s;}
+.eye-btn:hover{color:var(--text);}
+
+.btn-login{width:100%;padding:13px;background:var(--primary);color:#fff;
+  border:none;border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:'Nunito Sans',sans-serif;transition:.2s;display:flex;align-items:center;
+  justify-content:center;gap:8px;margin-top:8px;}
+.btn-login:hover{background:#d32f2f;box-shadow:0 4px 20px rgba(179,27,27,.4);}
+.btn-login:active{transform:scale(.99);}
+.btn-login.loading{opacity:.7;pointer-events:none;}
+
+.alert{padding:11px 14px;border-radius:5px;font-size:13px;margin-bottom:16px;display:none;}
+.al-e{background:rgba(229,57,53,.15);border:1px solid #e53935;color:#ef9a9a;}
+.al-s{background:rgba(67,160,71,.15);border:1px solid #43a047;color:#81c784;}
+
+.divider{text-align:center;font-size:11px;color:var(--muted);margin:20px 0;}
+.hint{font-size:11px;color:var(--muted);text-align:center;margin-top:20px;}
+.hint span{color:var(--primary);}
+
+@media(max-width:680px){.wrap{grid-template-columns:1fr;}.panel{display:none;}.form-side{padding:40px 25px;}}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="wrap">
+
+  <!-- Left Panel -->
+  <div class="panel">
+    <div class="panel-logo">
+      <div class="panel-icon"><i class="fas fa-shield-alt"></i></div>
+      <div>
+        <h1>Rescue 1122</h1>
+        <small>Human Resource Management System</small>
+      </div>
+    </div>
+    <div class="panel-hero">
+      <h2>Manage Your <span>Workforce</span> With Precision</h2>
+      <p>Complete HR solution built for Rescue 1122 — track employees, manage records, generate reports and more.</p>
+      <div class="feat">
+        <div class="feat-item"><i class="fas fa-users"></i> Complete employee lifecycle management</div>
+        <div class="feat-item"><i class="fas fa-chart-bar"></i> Real-time dashboards & analytics</div>
+        <div class="feat-item"><i class="fas fa-file-export"></i> Export to Excel, PDF & Print</div>
+        <div class="feat-item"><i class="fas fa-sliders-h"></i> Fully customizable dropdowns</div>
+        <div class="feat-item"><i class="fas fa-cloud-upload-alt"></i> Bulk import via CSV / Excel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Form -->
+  <div class="form-side">
+    <h3>Welcome Back</h3>
+    <p>Sign in to access the HR dashboard</p>
+
+    <div class="alert al-e" id="alertBox"></div>
+
+    <div class="fg">
+      <label class="lbl">Username</label>
+      <div class="inp-wrap">
+        <i class="fas fa-user"></i>
+        <input type="text" class="fc" id="username" placeholder="Enter your username"
+          onkeydown="if(event.key==='Enter')login()">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="lbl">Password</label>
+      <div class="inp-wrap">
+        <i class="fas fa-lock"></i>
+        <input type="password" class="fc" id="password" placeholder="Enter your password"
+          onkeydown="if(event.key==='Enter')login()">
+        <button class="eye-btn" onclick="togglePwd()" id="eyeBtn" type="button">
+          <i class="fas fa-eye" id="eyeIcon"></i>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn-login" id="loginBtn" onclick="login()">
+      <i class="fas fa-sign-in-alt"></i> Sign In
+    </button>
+
+    <div class="hint">Default credentials: <span>admin / admin123</span> &nbsp;(run setup.php first)</div>
+  </div>
+
+</div>
+
+<script>
+// If already logged in, go straight to dashboard
+if (Auth.isLoggedIn()) window.location.href = 'admin.html';
+
+async function login() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value.trim();
+  if (!u || !p) { showAlert('Please enter username and password.'); return; }
+
+  const btn = document.getElementById('loginBtn');
+  btn.classList.add('loading');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+
+  try {
+    const res  = await api.post('login', { username: u, password: p });
+    const data = await res.json();
+
+    if (data.success) {
+      // Store token and user info — config.js Auth helper
+      Auth.setToken(data.token);
+      Auth.setUser(data.user);
+      btn.innerHTML = '<i class="fas fa-check"></i> Success!';
+      setTimeout(() => window.location.href = 'admin.html', 500);
+    } else {
+      showAlert(data.error || 'Login failed.');
+      btn.classList.remove('loading');
+      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+    }
+  } catch {
+    showAlert('Cannot connect to server. Make sure XAMPP is running and Laravel API is started (php artisan serve).');
+    btn.classList.remove('loading');
+    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+  }
+}
+
+function showAlert(msg) {
+  const b = document.getElementById('alertBox');
+  b.textContent = '⚠ ' + msg;
+  b.style.display = 'block';
+  b.className = 'alert al-e';
+}
+
+function togglePwd() {
+  const inp  = document.getElementById('password');
+  const icon = document.getElementById('eyeIcon');
+  const show = inp.type === 'password';
+  inp.type   = show ? 'text' : 'password';
+  icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+document.getElementById('username').focus();
+</script>
+</body>
+</html>

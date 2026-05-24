@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rescue 1122 — Bulk Import</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="config.js"></script>
+    <style>
+        :root {
+            --primary:   #b31b1b;
+            --text:      #c0d4e8;
+            --bg:        #0b1a2a;
+            --card:      #0c1e2e;
+            --input-bg:  #0a1624;
+            --border:    #1e3a5f;
+            --success:   #43a047;
+            --warning:   #ffa726;
+            --info:      #1976d2;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Nunito Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+        /* TOP BAR */
+        .topbar {
+            background: var(--card); padding: 14px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--primary);
+        }
+        .topbar-logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; }
+        .topbar h1 { font-size: 18px; color: #fff; }
+        .topbar span { font-size: 12px; color: var(--text); display: block; }
+        .btn { padding: 9px 20px; border-radius: 5px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .btn-back   { background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-primary{ background: var(--primary); color: #fff; }
+        .btn-success{ background: var(--success); color: #fff; }
+        .btn-info   { background: var(--info); color: #fff; }
+
+        /* CONTAINER */
+        .container { max-width: 960px; margin: 0 auto; padding: 30px 20px; }
+
+        /* HOW TO CARD */
+        .how-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 25px; margin-bottom: 25px;
+        }
+        .how-card h3 { font-size: 15px; color: #fff; margin-bottom: 18px; }
+        .steps-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 15px; }
+        .step-box {
+            background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 6px; padding: 16px; text-align: center;
+        }
+        .step-num {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; margin: 0 auto 10px;
+        }
+        .step-box i   { font-size: 22px; color: var(--primary); margin-bottom: 8px; display: block; }
+        .step-box h4  { font-size: 12px; color: #fff; margin-bottom: 5px; }
+        .step-box p   { font-size: 11px; color: #6b8fa8; line-height: 1.5; }
+
+        /* UPLOAD CARD */
+        .upload-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 25px; margin-bottom: 25px;
+        }
+        .upload-card h3 { font-size: 15px; color: #fff; margin-bottom: 20px; }
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px; padding: 50px 30px;
+            text-align: center; cursor: pointer;
+            transition: 0.3s; position: relative;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(179,27,27,0.05);
+        }
+        .drop-zone i { font-size: 48px; color: #3a5a7a; margin-bottom: 15px; display: block; }
+        .drop-zone h4 { font-size: 16px; color: #fff; margin-bottom: 8px; }
+        .drop-zone p  { font-size: 13px; color: #6b8fa8; margin-bottom: 15px; }
+        .drop-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer;
+        }
+        .file-selected { margin-top: 15px; font-size: 13px; color: var(--success); display: none; }
+
+        /* PREVIEW TABLE */
+        .preview-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; overflow: hidden; margin-bottom: 25px;
+            display: none;
+        }
+        .preview-header {
+            background: var(--input-bg); padding: 14px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .preview-header h3 { font-size: 14px; color: #fff; }
+        .preview-stats { display: flex; gap: 15px; font-size: 12px; }
+        .stat-pill {
+            padding: 3px 12px; border-radius: 20px; font-weight: 700;
+        }
+        .pill-total   { background: rgba(25,118,210,0.2); color: #64b5f6; border: 1px solid rgba(25,118,210,0.3); }
+        .pill-valid   { background: rgba(67,160,71,0.2);  color: #81c784; border: 1px solid rgba(67,160,71,0.3); }
+        .pill-invalid { background: rgba(229,57,53,0.2);  color: #ef9a9a; border: 1px solid rgba(229,57,53,0.3); }
+        .table-wrap { overflow-x: auto; max-height: 350px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th {
+            background: #051020; padding: 10px 14px;
+            text-align: left; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #6b8fa8; white-space: nowrap;
+            position: sticky; top: 0; z-index: 1;
+        }
+        td { padding: 10px 14px; border-bottom: 1px solid #0d2035; color: var(--text); white-space: nowrap; }
+        tr:hover td { background: rgba(179,27,27,0.04); }
+        .row-ok  { border-left: 3px solid var(--success); }
+        .row-err { border-left: 3px solid #e53935; }
+        .row-err td { color: #ef9a9a; }
+        .badge-ok  { background: rgba(67,160,71,0.2); color: #81c784; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
+        .badge-err { background: rgba(229,57,53,0.2); color: #ef9a9a; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
+        .err-tip { font-size: 10px; color: #ef9a9a; }
+
+        /* IMPORT ACTION */
+        .action-row {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 25px;
+        }
+        .action-left  { font-size: 13px; color: #6b8fa8; }
+        .action-right { display: flex; gap: 10px; }
+
+        /* RESULTS */
+        .results-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 25px;
+            display: none; margin-bottom: 25px;
+        }
+        .results-card h3 { font-size: 15px; color: #fff; margin-bottom: 20px; }
+        .result-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 15px; margin-bottom: 20px; }
+        .r-stat { background: var(--input-bg); border-radius: 6px; padding: 16px; text-align: center; }
+        .r-stat .num { font-size: 32px; font-weight: 700; }
+        .r-stat .lbl { font-size: 12px; color: #6b8fa8; margin-top: 4px; }
+        .num-success { color: var(--success); }
+        .num-skip    { color: var(--warning); }
+        .num-total   { color: var(--info); }
+        .err-list { background: var(--input-bg); border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto; }
+        .err-list-title { font-size: 12px; font-weight: 700; color: #ef9a9a; margin-bottom: 10px; }
+        .err-line { font-size: 12px; color: #ef9a9a; padding: 4px 0; border-bottom: 1px solid var(--border); }
+
+        /* PROGRESS BAR */
+        .progress-wrap { margin: 15px 0; display: none; }
+        .progress-bar-bg { background: var(--border); border-radius: 4px; height: 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.3s; width: 0; }
+        .progress-text { font-size: 12px; color: #6b8fa8; margin-top: 6px; }
+
+        /* ALERT */
+        .alert { padding: 12px 18px; border-radius: 5px; margin-bottom: 18px; font-size: 13px; display: none; }
+        .alert-success { background: rgba(67,160,71,0.15); border: 1px solid var(--success); color: #81c784; }
+        .alert-error   { background: rgba(229,57,53,0.15); border: 1px solid #e53935; color: #ef9a9a; }
+        .alert-info    { background: rgba(25,118,210,0.15); border: 1px solid var(--info); color: #90caf9; }
+
+        /* COLUMNS GUIDE */
+        .col-guide { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 25px; margin-bottom: 25px; }
+        .col-guide h3 { font-size: 15px; color: #fff; margin-bottom: 15px; }
+        .col-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+        .col-item { background: var(--input-bg); border-radius: 4px; padding: 8px 12px; font-size: 12px; }
+        .col-name { color: #fff; font-weight: 600; }
+        .col-req  { color: var(--primary); font-size: 10px; }
+        .col-ex   { color: #6b8fa8; font-size: 10px; margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-logo">
+        <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+        <div>
+            <h1>Rescue 1122</h1>
+            <span>Bulk Employee Import</span>
+        </div>
+    </div>
+    <button class="btn btn-back" onclick="window.location.href='admin.html'">
+        <i class="fas fa-arrow-left"></i> Back to Admin
+    </button>
+</div>
+
+<div class="container">
+
+    <div id="alertBox" class="alert"></div>
+
+    <!-- HOW IT WORKS -->
+    <div class="how-card">
+        <h3><i class="fas fa-info-circle" style="color:var(--primary)"></i> How Bulk Import Works</h3>
+        <div class="steps-grid">
+            <div class="step-box">
+                <div class="step-num">1</div>
+                <i class="fas fa-download"></i>
+                <h4>Download Template</h4>
+                <p>Get the CSV template with all required column headers</p>
+            </div>
+            <div class="step-box">
+                <div class="step-num">2</div>
+                <i class="fas fa-table"></i>
+                <h4>Fill in Excel</h4>
+                <p>Open in Excel or Google Sheets. Add one employee per row</p>
+            </div>
+            <div class="step-box">
+                <div class="step-num">3</div>
+                <i class="fas fa-upload"></i>
+                <h4>Upload & Preview</h4>
+                <p>Upload the file. Review all rows before importing</p>
+            </div>
+            <div class="step-box">
+                <div class="step-num">4</div>
+                <i class="fas fa-database"></i>
+                <h4>Import to Database</h4>
+                <p>Valid rows are imported. Errors are reported clearly</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMN GUIDE -->
+    <div class="col-guide">
+        <h3><i class="fas fa-columns" style="color:var(--primary)"></i> Column Reference Guide — All 44 Supported Fields</h3>
+
+        <!-- Identity -->
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🪪 Identity</div>
+        <div class="col-grid" style="margin-bottom:14px">
+            <div class="col-item"><div class="col-name">full_name <span class="col-req">★</span></div><div class="col-ex">e.g. Muhammad Ali Khan</div></div>
+            <div class="col-item"><div class="col-name">cnic <span class="col-req">★</span></div><div class="col-ex">42301-0821549-9</div></div>
+            <div class="col-item"><div class="col-name">gender <span class="col-req">★</span></div><div class="col-ex">Male / Female</div></div>
+            <div class="col-item"><div class="col-name">father_name</div><div class="col-ex">e.g. Abdul Karim Khan</div></div>
+            <div class="col-item"><div class="col-name">dob</div><div class="col-ex">DD-MM-YYYY</div></div>
+            <div class="col-item"><div class="col-name">blood_group</div><div class="col-ex">A+ / A- / B+ / B- / AB+ / AB- / O+ / O-</div></div>
+            <div class="col-item"><div class="col-name">marital_status</div><div class="col-ex">Single / Married / Divorced / Widowed</div></div>
+            <div class="col-item"><div class="col-name">children</div><div class="col-ex">Number e.g. 2</div></div>
+            <div class="col-item"><div class="col-name">religion</div><div class="col-ex">Islam / Christianity / Hinduism / Other</div></div>
+            <div class="col-item"><div class="col-name">sect</div><div class="col-ex">Sunni / Shia / Other</div></div>
+            <div class="col-item"><div class="col-name">mother_tongue</div><div class="col-ex">Urdu / Sindhi / Punjabi…</div></div>
+            <div class="col-item"><div class="col-name">domicile</div><div class="col-ex">e.g. Karachi Central</div></div>
+            <div class="col-item"><div class="col-name">languages</div><div class="col-ex">Urdu, English, Sindhi</div></div>
+        </div>
+
+        <!-- Employment -->
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">📞 Contact</div>
+        <div class="col-grid" style="margin-bottom:14px">
+            <div class="col-item"><div class="col-name">phone</div><div class="col-ex">0333-1234567</div></div>
+            <div class="col-item"><div class="col-name">email</div><div class="col-ex">ali@rescue.pk</div></div>
+            <div class="col-item"><div class="col-name">temp_address</div><div class="col-ex">House No, Street, Area</div></div>
+            <div class="col-item"><div class="col-name">perm_address</div><div class="col-ex">Same or different address</div></div>
+            <div class="col-item"><div class="col-name">emg_name</div><div class="col-ex">Emergency contact name</div></div>
+            <div class="col-item"><div class="col-name">emg_phone</div><div class="col-ex">0321-7654321</div></div>
+        </div>
+
+        <!-- Education -->
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🎓 Education & Training</div>
+        <div class="col-grid" style="margin-bottom:14px">
+            <div class="col-item"><div class="col-name">education</div><div class="col-ex">Matric / BA / BSc / MBA…</div></div>
+            <div class="col-item"><div class="col-name">field_study</div><div class="col-ex">e.g. Electrical Engineering</div></div>
+            <div class="col-item"><div class="col-name">training_done</div><div class="col-ex">1 = Yes, 0 = No</div></div>
+            <div class="col-item"><div class="col-name">training_result</div><div class="col-ex">Pass / Fail / Pending</div></div>
+            <div class="col-item"><div class="col-name">training_date</div><div class="col-ex">DD-MM-YYYY</div></div>
+            <div class="col-item"><div class="col-name">training_center</div><div class="col-ex">e.g. Rescue Training Academy</div></div>
+            <div class="col-item"><div class="col-name">specializations</div><div class="col-ex">Comma separated skills</div></div>
+        </div>
+
+        <!-- Contact -->
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">💼 Employment</div>
+        <div class="col-grid" style="margin-bottom:14px">
+            <div class="col-item"><div class="col-name">designation <span class="col-req">★</span></div><div class="col-ex">e.g. Rescue Officer</div></div>
+            <div class="col-item"><div class="col-name">joining_date <span class="col-req">★</span></div><div class="col-ex">DD-MM-YYYY</div></div>
+            <div class="col-item"><div class="col-name">emp_status</div><div class="col-ex">Active / On Leave / Suspended / Retired</div></div>
+            <div class="col-item"><div class="col-name">category</div><div class="col-ex">Officer / Staff / Contract / Daily Wage</div></div>
+            <div class="col-item"><div class="col-name">station</div><div class="col-ex">e.g. KCI HQ</div></div>
+            <div class="col-item"><div class="col-name">pay_scale</div><div class="col-ex">BPS-01 to BPS-22</div></div>
+            <div class="col-item"><div class="col-name">pay</div><div class="col-ex">Monthly amount e.g. 45000</div></div>
+            <div class="col-item"><div class="col-name">batch_no</div><div class="col-ex">1st / 2nd / 3rd…</div></div>
+            <div class="col-item"><div class="col-name">reporting_officer</div><div class="col-ex">e.g. Station Commander</div></div>
+            <div class="col-item"><div class="col-name">prob_start</div><div class="col-ex">DD-MM-YYYY (auto-calc if blank)</div></div>
+            <div class="col-item"><div class="col-name">prob_end</div><div class="col-ex">DD-MM-YYYY (auto +1yr from start)</div></div>
+            <div class="col-item"><div class="col-name">job_desc</div><div class="col-ex">Short duties description</div></div>
+        </div>
+
+        <!-- Documents -->
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">📄 Documents</div>
+        <div class="col-grid" style="margin-bottom:14px">
+            <div class="col-item"><div class="col-name">offer_no</div><div class="col-ex">PD/SRP/PDMA/Sindh/1001/2022</div></div>
+            <div class="col-item"><div class="col-name">offer_date</div><div class="col-ex">DD-MM-YYYY</div></div>
+            <div class="col-item"><div class="col-name">appt_no</div><div class="col-ex">Appointment letter number</div></div>
+            <div class="col-item"><div class="col-name">appt_date</div><div class="col-ex">DD-MM-YYYY</div></div>
+            <div class="col-item"><div class="col-name">police_verify</div><div class="col-ex">Available / Pending / Not Available</div></div>
+            <div class="col-item"><div class="col-name">police_date</div><div class="col-ex">DD-MM-YYYY</div></div>
+            <div class="col-item"><div class="col-name">medical_cert</div><div class="col-ex">Available / Pending / Not Available</div></div>
+            <div class="col-item"><div class="col-name">medical_cert_date</div><div class="col-ex">DD-MM-YYYY</div></div>
+            <div class="col-item"><div class="col-name">driving_licence</div><div class="col-ex">Available / Pending / N/A</div></div>
+            <div class="col-item"><div class="col-name">acceptance_date</div><div class="col-ex">DD-MM-YYYY</div></div>
+        </div>
+
+        <!-- Finance -->
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🏦 Finance</div>
+        <div class="col-grid" style="margin-bottom:6px">
+            <div class="col-item"><div class="col-name">bank_name</div><div class="col-ex">HBL — Habib Bank Limited</div></div>
+            <div class="col-item"><div class="col-name">bank_branch</div><div class="col-ex">NBP Main Branch Karachi</div></div>
+            <div class="col-item"><div class="col-name">iban</div><div class="col-ex">PK35HABB00001234567890</div></div>
+            <div class="col-item"><div class="col-name">eobi_no</div><div class="col-ex">EOBI-776655</div></div>
+            <div class="col-item"><div class="col-name">insurance</div><div class="col-ex">State Life — Plan A</div></div>
+        </div>
+
+        <p style="font-size:11px;color:#6b8fa8;margin-top:15px">
+            <i class="fas fa-star" style="color:var(--primary)"></i>
+            <strong style="color:var(--primary)">★ Starred columns are required.</strong>
+            All others optional — leave blank if not available.
+            All dates must be <strong>DD-MM-YYYY</strong>.
+            Column names are case-insensitive.
+        </p>
+    </div>
+
+    <!-- UPLOAD ZONE -->
+    <div class="upload-card">
+        <h3><i class="fas fa-file-csv" style="color:var(--primary)"></i> Upload Employee Data</h3>
+
+        <div style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-info" onclick="downloadTemplate()">
+                <i class="fas fa-download"></i> Download CSV Template
+            </button>
+            <button class="btn btn-info" onclick="downloadExcelTemplate()">
+                <i class="fas fa-file-excel"></i> Download Excel Template
+            </button>
+        </div>
+
+        <!-- Step 1: CSV -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;
+                display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</div>
+            <span style="font-size:13px;color:#fff;font-weight:600">Upload CSV / Excel File <span style="color:var(--primary)">*</span></span>
+        </div>
+        <div class="drop-zone" id="dropZone"
+            ondragover="handleDrag(event,true)"
+            ondragleave="handleDrag(event,false)"
+            ondrop="handleDrop(event)">
+            <input type="file" id="csvFile" accept=".csv,.xlsx,.xls"
+                onchange="handleFile(this.files[0])">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h4>Drop your CSV or Excel file here</h4>
+            <p>or click to browse files</p>
+            <p style="font-size:11px">Supported: .csv, .xlsx, .xls — Maximum 5MB</p>
+            <div class="file-selected" id="fileSelected">
+                <i class="fas fa-check-circle"></i>
+                <span id="fileName"></span>
+            </div>
+        </div>
+
+        <!-- Step 2: Photos ZIP (optional) -->
+        <div style="display:flex;align-items:center;gap:10px;margin:20px 0 10px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:var(--info);color:#fff;
+                display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</div>
+            <span style="font-size:13px;color:#fff;font-weight:600">Upload Photos ZIP <span style="color:var(--muted);font-weight:400;font-size:11px">(optional)</span></span>
+        </div>
+
+        <!-- Photo instructions card -->
+        <div style="background:rgba(25,118,210,.08);border:1px solid rgba(25,118,210,.25);border-radius:6px;
+            padding:14px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;">
+            <i class="fas fa-info-circle" style="color:#64b5f6;margin-top:2px;flex-shrink:0"></i>
+            <div style="font-size:12px;color:#90caf9;line-height:1.9">
+                <strong>How to prepare the photos ZIP:</strong><br>
+                1. Name each photo file as the employee's <strong>CNIC</strong> (e.g. <code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px">42301-0821549-9.jpg</code>)<br>
+                2. Put all photos in one folder and compress to a <strong>.zip</strong> file<br>
+                3. Accepted formats: JPG, PNG, WEBP — Max 2MB per photo<br>
+                4. The system matches photo to employee by CNIC automatically
+            </div>
+        </div>
+
+        <div class="drop-zone" id="dropZonePhoto" style="padding:25px 30px;"
+            ondragover="handleDragPhoto(event,true)"
+            ondragleave="handleDragPhoto(event,false)"
+            ondrop="handleDropPhoto(event)">
+            <input type="file" id="photoZipFile" accept=".zip"
+                onchange="handlePhotoZip(this.files[0])">
+            <i class="fas fa-images" style="font-size:32px"></i>
+            <h4 style="font-size:14px">Drop photos ZIP here</h4>
+            <p>or click to browse — .zip files only</p>
+            <div class="file-selected" id="photoFileSelected">
+                <i class="fas fa-check-circle"></i>
+                <span id="photoFileName"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- PREVIEW TABLE -->
+    <div class="preview-card" id="previewCard">
+        <div class="preview-header">
+            <h3><i class="fas fa-table"></i> Data Preview</h3>
+            <div class="preview-stats">
+                <span class="stat-pill pill-total">Total: <span id="countTotal">0</span></span>
+                <span class="stat-pill pill-valid">Valid: <span id="countValid">0</span></span>
+                <span class="stat-pill pill-invalid">Issues: <span id="countInvalid">0</span></span>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table id="previewTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Status</th>
+                        <th>Full Name</th>
+                        <th>CNIC</th>
+                        <th>Gender</th>
+                        <th>Designation</th>
+                        <th>Station</th>
+                        <th>Joining Date</th>
+                        <th>Pay Scale</th>
+                        <th>Issue</th>
+                    </tr>
+                </thead>
+                <tbody id="previewBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ACTION ROW -->
+    <div class="action-row" id="actionRow" style="display:none">
+        <div class="action-left" id="actionMsg"></div>
+        <div class="action-right">
+            <button class="btn btn-back" onclick="resetAll()">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+            <button class="btn btn-success" id="importBtn" onclick="startImport()">
+                <i class="fas fa-database"></i> Import Valid Records
+            </button>
+        </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">Preparing import...</div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-card" id="resultsCard">
+        <h3><i class="fas fa-clipboard-check" style="color:var(--success)"></i> Import Results</h3>
+        <div class="result-stats">
+            <div class="r-stat">
+                <div class="num num-total" id="res-total">0</div>
+                <div class="lbl">Total Processed</div>
+            </div>
+            <div class="r-stat">
+                <div class="num num-success" id="res-success">0</div>
+                <div class="lbl">Successfully Imported</div>
+            </div>
+            <div class="r-stat">
+                <div class="num num-skip" id="res-skipped">0</div>
+                <div class="lbl">Skipped / Errors</div>
+            </div>
+        </div>
+        <div id="errListWrap" style="display:none">
+            <div class="err-list">
+                <div class="err-list-title">
+                    <i class="fas fa-exclamation-triangle"></i> Rows with errors:
+                </div>
+                <div id="errList"></div>
+            </div>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px">
+            <!-- FIXED: Now redirects to employee_list.html instead of admin.html -->
+            <button class="btn btn-success" id="viewEmployeesBtn">
+                <i class="fas fa-users"></i> View All Employees
+            </button>
+            <button class="btn btn-back" onclick="resetAll()">
+                <i class="fas fa-plus"></i> Import Another File
+            </button>
+        </div>
+    </div>
+
+</div><!-- end container -->
+
+<script>
+// API from config.js
+Auth.requireAuth();
+async function logout(){try{await api.post('logout');}catch{}Auth.clearToken();window.location.href='index.html';}
+let parsedRows = [];
+
+// ─────────────────────────────────────────────────────
+// DRAG & DROP — CSV
+// ─────────────────────────────────────────────────────
+function handleDrag(e, over) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.toggle('dragover', over);
+}
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+}
+
+// ─────────────────────────────────────────────────────
+// DRAG & DROP — PHOTO ZIP
+// ─────────────────────────────────────────────────────
+function handleDragPhoto(e, over) {
+    e.preventDefault();
+    document.getElementById('dropZonePhoto').classList.toggle('dragover', over);
+}
+function handleDropPhoto(e) {
+    e.preventDefault();
+    document.getElementById('dropZonePhoto').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handlePhotoZip(file);
+}
+function handlePhotoZip(file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+        showAlert('error', '❌ Please upload a .zip file containing photos.');
+        return;
+    }
+    document.getElementById('photoFileName').textContent =
+        `📦 ${file.name} (${formatSize(file.size)})`;
+    document.getElementById('photoFileSelected').style.display = 'block';
+    document.getElementById('dropZonePhoto').style.borderColor = 'var(--success)';
+}
+
+// ─────────────────────────────────────────────────────
+// HANDLE FILE — CSV or Excel
+// ─────────────────────────────────────────────────────
+function handleFile(file) {
+    if (!file) return;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['csv','xlsx','xls'].includes(ext)) {
+        showAlert('error', '❌ Please upload a CSV or Excel (.xlsx/.xls) file.');
+        return;
+    }
+
+    document.getElementById('fileName').textContent    = file.name + ' (' + formatSize(file.size) + ')';
+    document.getElementById('fileSelected').style.display = 'block';
+
+    if (ext === 'csv') {
+        readCSV(file);
+    } else {
+        readExcel(file);
+    }
+}
+
+function formatSize(bytes) {
+    if (bytes < 1024)         return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+// ─────────────────────────────────────────────────────
+// READ CSV
+// ─────────────────────────────────────────────────────
+function readCSV(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        const text = e.target.result;
+        const rows = parseCSV(text);
+        processRows(rows);
+    };
+    reader.readAsText(file);
+}
+
+function parseCSV(text) {
+    const lines  = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+    const result = [];
+    for (const line of lines) {
+        const row = [];
+        let cell = '', inQuote = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                inQuote = !inQuote;
+            } else if (ch === ',' && !inQuote) {
+                row.push(cell.trim()); cell = '';
+            } else {
+                cell += ch;
+            }
+        }
+        row.push(cell.trim());
+        result.push(row);
+    }
+    return result;
+}
+
+// ─────────────────────────────────────────────────────
+// READ EXCEL (.xlsx / .xls)
+// ─────────────────────────────────────────────────────
+function readExcel(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        const data     = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+        const sheet    = workbook.Sheets[workbook.SheetNames[0]];
+        const json     = XLSX.utils.sheet_to_csv(sheet);
+        const rows     = parseCSV(json);
+        processRows(rows);
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// ─────────────────────────────────────────────────────
+// PROCESS ROWS — validate and build preview
+// ─────────────────────────────────────────────────────
+function processRows(rows) {
+    if (rows.length < 2) {
+        showAlert('error', '❌ File has no data rows. Please fill in employee data.');
+        return;
+    }
+
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    parsedRows    = [];
+
+    const required = ['full_name','cnic','gender','designation','joining_date'];
+
+    for (let i = 1; i < rows.length; i++) {
+        const row    = rows[i];
+        if (row.every(c => !c.trim())) continue;
+
+        const data   = {};
+        headers.forEach((h, idx) => { data[h] = (row[idx] || '').trim(); });
+
+        const issues = [];
+        required.forEach(f => {
+            if (!data[f]) issues.push(`${f} is empty`);
+        });
+
+        ['dob','joining_date','offer_date','appt_date'].forEach(f => {
+            if (data[f] && !/^\d{2}-\d{2}-\d{4}$/.test(data[f])) {
+                issues.push(`${f} format must be DD-MM-YYYY`);
+            }
+        });
+
+        parsedRows.push({
+            rowNum:  i,
+            data:    data,
+            issues:  issues,
+            valid:   issues.length === 0
+        });
+    }
+
+    renderPreview();
+}
+
+// ─────────────────────────────────────────────────────
+// RENDER PREVIEW TABLE
+// ─────────────────────────────────────────────────────
+function renderPreview() {
+    const total   = parsedRows.length;
+    const valid   = parsedRows.filter(r => r.valid).length;
+    const invalid = total - valid;
+
+    document.getElementById('countTotal').textContent   = total;
+    document.getElementById('countValid').textContent   = valid;
+    document.getElementById('countInvalid').textContent = invalid;
+
+    const tbody = document.getElementById('previewBody');
+    tbody.innerHTML = parsedRows.map((r, i) => `
+        <tr class="${r.valid ? 'row-ok' : 'row-err'}">
+            <td>${r.rowNum}</td>
+            <td>${r.valid
+                ? '<span class="badge-ok">✅ Valid</span>'
+                : '<span class="badge-err">⚠ Issues</span>'}</td>
+            <td><strong>${escapeHtml(r.data.full_name || '—')}</strong></td>
+            <td>${escapeHtml(r.data.cnic || '—')}</td>
+            <td>${escapeHtml(r.data.gender || '—')}</td>
+            <td>${escapeHtml(r.data.designation || '—')}</td>
+            <td>${escapeHtml(r.data.station || '—')}</td>
+            <td>${escapeHtml(r.data.joining_date || '—')}</td>
+            <td>${escapeHtml(r.data.pay_scale || '—')}</td>
+            <td class="err-tip">${r.issues.join(' | ') || ''}</td>
+        </table>`).join('');
+
+    document.getElementById('previewCard').style.display = 'block';
+    document.getElementById('actionRow').style.display   = 'flex';
+    document.getElementById('actionMsg').textContent     =
+        `${valid} valid record${valid !== 1 ? 's' : ''} ready to import.
+         ${invalid ? invalid + ' row(s) will be skipped.' : ''}`;
+
+    if (valid === 0) {
+        document.getElementById('importBtn').disabled = true;
+        document.getElementById('importBtn').style.opacity = '0.5';
+    }
+}
+
+// ─────────────────────────────────────────────────────
+// START IMPORT
+// ─────────────────────────────────────────────────────
+async function startImport() {
+    const validRows = parsedRows.filter(r => r.valid);
+    if (!validRows.length) {
+        showAlert('error', '❌ No valid rows to import.');
+        return;
+    }
+
+    const photoZip = document.getElementById('photoZipFile').files[0];
+    const photoMsg = photoZip ? ` + ${photoZip.name} (photos)` : '';
+    if (!confirm(`Import ${validRows.length} employees into the database?${photoMsg}`)) return;
+
+    document.getElementById('importBtn').disabled = true;
+    document.getElementById('progressWrap').style.display = 'block';
+
+    if (!parsedRows.length) { showAlert('error', '❌ No data to import.'); return; }
+    const headers  = Object.keys(parsedRows[0].data).join(',');
+    const csvRows  = validRows.map(r =>
+        Object.values(r.data).map(v => {
+            const s = String(v || '');
+            return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g,'""')}"` : s;
+        }).join(',')
+    );
+    const csvBlob = new Blob([headers + '\n' + csvRows.join('\n')], { type:'text/csv' });
+
+    const formData = new FormData();
+    formData.append('csv_file', csvBlob, 'import.csv');
+    if (photoZip) formData.append('photo_zip', photoZip, photoZip.name);
+
+    updateProgress(15, 'Uploading files...');
+
+    try {
+        updateProgress(35, 'Processing employee records...');
+        const res  = await api.upload('import/employees', formData);
+        updateProgress(80, 'Saving to database...');
+        const data = await res.json();
+        updateProgress(100, 'Complete!');
+        setTimeout(() => {
+            document.getElementById('progressWrap').style.display = 'none';
+            showResults(data);
+        }, 500);
+    } catch (err) {
+        document.getElementById('progressWrap').style.display = 'none';
+        showAlert('error', '❌ Server error. Make sure XAMPP is running.');
+        document.getElementById('importBtn').disabled = false;
+    }
+}
+
+function updateProgress(pct, text) {
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = text;
+}
+
+// ─────────────────────────────────────────────────────
+// SHOW RESULTS — FORCES REDIRECT TO employee_list.html
+// ─────────────────────────────────────────────────────
+function showResults(data) {
+    document.getElementById('previewCard').style.display  = 'none';
+    document.getElementById('actionRow').style.display    = 'none';
+    document.getElementById('resultsCard').style.display  = 'block';
+
+    const imported = data.imported || data.success || 0;
+    const skipped  = data.skipped  || 0;
+    const total    = data.total    || 0;
+    const photos   = data.photos_found || 0;
+
+    document.getElementById('res-total').textContent   = total;
+    document.getElementById('res-success').textContent = imported;
+    document.getElementById('res-skipped').textContent = skipped;
+
+    const staleNote = document.querySelector('#res-success + div[data-photo-note]');
+    if (staleNote) staleNote.remove();
+    if (photos > 0) {
+        document.getElementById('res-success').insertAdjacentHTML('afterend',
+            `<div data-photo-note style="font-size:11px;color:#81c784;margin-top:4px">+ ${photos} photos matched</div>`);
+    }
+
+    if (data.errors && data.errors.length) {
+        document.getElementById('errListWrap').style.display = 'block';
+        document.getElementById('errList').innerHTML =
+            data.errors.map(e => `<div class="err-line">⚠ ${escapeHtml(e)}</div>`).join('');
+    }
+
+    if (imported > 0) {
+        const msg = photos > 0
+            ? `✅ ${imported} employees imported with ${photos} photos matched!`
+            : `✅ ${imported} employees imported successfully!`;
+        showAlert('success', msg);
+    } else {
+        showAlert('error', '❌ No records imported. Check the error list below.');
+    }
+
+    // Force the "View All Employees" button to go to employee_list.html
+    const viewBtn = document.getElementById('viewEmployeesBtn');
+    if (viewBtn) {
+        viewBtn.onclick = function() {
+            window.location.href = 'employee_list.html';
+        };
+    }
+}
+
+// ─────────────────────────────────────────────────────
+// DOWNLOAD TEMPLATES
+// ─────────────────────────────────────────────────────
+function downloadTemplate() {
+    const headers = [
+        'full_name','father_name','cnic','dob','gender','blood_group',
+        'marital_status','children','religion','sect','mother_tongue',
+        'domicile','languages',
+        'phone','email','temp_address','perm_address','emg_name','emg_phone',
+        'education','field_study','training_done','training_result',
+        'training_date','training_center','specializations',
+        'designation','category','emp_status','station','pay_scale','pay',
+        'batch_no','joining_date','prob_start','prob_end','reporting_officer','job_desc',
+        'offer_no','offer_date','appt_no','appt_date',
+        'police_verify','police_date','medical_cert','medical_cert_date',
+        'driving_licence','acceptance_date',
+        'bank_name','bank_branch','iban','eobi_no','insurance'
+    ];
+    const sample = [
+        'Muhammad Ali Khan','Abdul Karim Khan','42301-0821549-9',
+        '15-03-1990','Male','B+','Married','2','Islam','Sunni','Urdu',
+        'Karachi Central','Urdu,English',
+        '0333-1234567','ali.khan@rescue.pk',
+        'House 12 Block A North Karachi','House 12 Block A North Karachi',
+        'Fatima Bibi','0321-7654321',
+        'BA / BSc','General','1','Pass',
+        '01-01-2022','Rescue 1122 Training Academy','First Aid,Fire Fighting',
+        'Rescue Officer','Staff','Active','KCI HQ','BPS-09','45000',
+        '2nd','01-04-2022','01-04-2022','01-04-2023','Station Commander',
+        'Frontline emergency response',
+        'PD/SRP/PDMA/Sindh/1001/2022','15-03-2022',
+        'PD/SRP/PDMA/Sindh/2001/2022','01-04-2022',
+        'Available','15-03-2022','Available','15-03-2022',
+        'Available','01-04-2022',
+        'HBL — Habib Bank Limited','HBL Karachi Main','PK35HABB00001234567890',
+        'EOBI-001122','State Life — Plan A'
+    ];
+    const csv  = headers.join(',') + '\n' + sample.map(v => {
+        const s = String(v);
+        return (s.includes(',') || s.includes('"') || s.includes('\n'))
+            ? `"${s.replace(/"/g, '""')}"` : s;
+    }).join(',');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'rescue1122_import_template.csv'; a.click();
+    URL.revokeObjectURL(url);
+}
+
+function downloadExcelTemplate() {
+    const wb   = XLSX.utils.book_new();
+    const data = [
+        // Headers — all 53 fields
+        ['full_name','father_name','cnic','dob','gender','blood_group',
+         'marital_status','children','religion','sect','mother_tongue',
+         'domicile','languages',
+         'phone','email','temp_address','perm_address','emg_name','emg_phone',
+         'education','field_study','training_done','training_result',
+         'training_date','training_center','specializations',
+         'designation','category','emp_status','station','pay_scale','pay',
+         'batch_no','joining_date','prob_start','prob_end','reporting_officer','job_desc',
+         'offer_no','offer_date','appt_no','appt_date',
+         'police_verify','police_date','medical_cert','medical_cert_date',
+         'driving_licence','acceptance_date',
+         'bank_name','bank_branch','iban','eobi_no','insurance'],
+        // Sample row 1
+        ['Muhammad Ali Khan','Abdul Karim Khan','42301-0821549-9',
+         '15-03-1990','Male','B+','Married',2,'Islam','Sunni','Urdu',
+         'Karachi Central','Urdu,English',
+         '0333-1234567','ali.khan@rescue.pk',
+         'House 12 Block A North Karachi','House 12 Block A North Karachi',
+         'Fatima Bibi','0321-7654321',
+         'BA / BSc','General',1,'Pass',
+         '01-01-2022','Rescue 1122 Training Academy','First Aid,Fire Fighting',
+         'Rescue Officer','Staff','Active','KCI HQ','BPS-09',45000,
+         '2nd','01-04-2022','01-04-2022','01-04-2023','Station Commander',
+         'Frontline emergency response',
+         'PD/SRP/PDMA/Sindh/1001/2022','15-03-2022',
+         'PD/SRP/PDMA/Sindh/2001/2022','01-04-2022',
+         'Available','15-03-2022','Available','15-03-2022',
+         'Available','01-04-2022',
+         'HBL — Habib Bank Limited','HBL Karachi Main','PK35HABB00001234567890',
+         'EOBI-001122','State Life — Plan A'],
+        // Sample row 2
+        ['Ayesha Noor','Noor Muhammad','42201-5678901-2',
+         '22-07-1995','Female','A+','Single',0,'Islam','Sunni','Sindhi',
+         'Karachi South','Sindhi,Urdu',
+         '0312-9876543','ayesha.noor@rescue.pk',
+         'Flat 5 Clifton Block 2','Flat 5 Clifton Block 2',
+         'Noor Muhammad','0312-1111111',
+         'Intermediate (HSSC)','Science',1,'Pass',
+         '01-06-2022','Rescue 1122 Training Academy','Paramedic,CPR',
+         'Paramedic','Staff','Active','KIHD Station','BPS-07',38000,
+         '3rd','15-06-2022','15-06-2022','15-06-2023','Station Commander',
+         'Emergency medical response',
+         'PD/SRP/PDMA/Sindh/1002/2022','01-06-2022',
+         'PD/SRP/PDMA/Sindh/2002/2022','15-06-2022',
+         'Available','01-06-2022','Available','01-06-2022',
+         'N/A','15-06-2022',
+         'MCB — Muslim Commercial Bank','MCB Clifton','PK35MCBL00009876543210',
+         'EOBI-001123','State Life — Plan A']
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = Array(53).fill({ wch: 22 });
+    XLSX.utils.book_append_sheet(wb, ws, 'Employees');
+    XLSX.writeFile(wb, 'rescue1122_import_template.xlsx');
+}
+
+// ─────────────────────────────────────────────────────
+// RESET
+// ─────────────────────────────────────────────────────
+function resetAll() {
+    parsedRows = [];
+    document.getElementById('csvFile').value              = '';
+    document.getElementById('photoZipFile').value         = '';
+    document.getElementById('fileSelected').style.display = 'none';
+    document.getElementById('photoFileSelected').style.display = 'none';
+    document.getElementById('dropZonePhoto').style.borderColor = '';
+    document.getElementById('previewCard').style.display  = 'none';
+    document.getElementById('actionRow').style.display    = 'none';
+    document.getElementById('resultsCard').style.display  = 'none';
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('previewBody').innerHTML      = '';
+    document.getElementById('alertBox').style.display     = 'none';
+    document.getElementById('importBtn').disabled         = false;
+    document.getElementById('importBtn').style.opacity    = '1';
+    document.getElementById('errListWrap').style.display  = 'none';
+    document.getElementById('errList').innerHTML           = '';
+    const note = document.querySelector('#res-success + div');
+    if (note) note.remove();
+}
+
+// ─────────────────────────────────────────────────────
+// HELPER: escapeHtml
+// ─────────────────────────────────────────────────────
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// ─────────────────────────────────────────────────────
+// ALERT
+// ─────────────────────────────────────────────────────
+function showAlert(type, msg) {
+    const box       = document.getElementById('alertBox');
+    box.className   = `alert alert-${type}`;
+    box.textContent = msg;
+    box.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (type === 'success') setTimeout(() => { box.style.display='none'; }, 6000);
+}
+</script>
+</body>
+</html>
